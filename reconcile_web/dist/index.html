@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Reconcile - Know What Renews Next</title>
+    
+    <!-- PWA & SEO Meta Tags -->
+    <meta name="description" content="Know what renews next. Track subscriptions, get timely reminders, and manage renewals seamlessly." />
+    <meta name="theme-color" content="#3D5438" />
+    
+    <!-- iOS Safari PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Reconcile" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    
+    <!-- Web App Manifest & Favicons -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="alternate icon" type="image/png" href="./icon-192.png" />
+    
+    <!-- Typography: Outfit (Distinctive human geometric display) + Inter (Tabular numerals) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Identity Services for Real Gmail Receipt Discovery -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script type="module" crossorigin src="./assets/index-DykFXzX0.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DoRWBg8v.css">
+  </head>
+  <body class="bg-[#FAF8F5] text-[#171717] selection:bg-[#E2EBD8] selection:text-[#3D5438] antialiased">
+    <div id="root"></div>
+    <script>
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then((registration) => {
+              console.log('Reconcile PWA Service Worker registered at scope:', registration.scope);
+            })
+            .catch((error) => {
+              console.warn('Reconcile PWA Service Worker registration skipped or failed:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
