@@ -49,10 +49,10 @@ export default {
       },
       transitionTimingFunction: {
         'spring': 'cubic-bezier(0.16, 1, 0.3, 1)',
-        'spring-bounce': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'spring-smooth': 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       }
     },
   },
