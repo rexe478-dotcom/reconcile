@@ -13,7 +13,7 @@ export function getApiBaseUrl(): string {
   }
   // In production (HTTPS origin, e.g. GitHub Pages or Netlify), fallback to Render cloud backend
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    return 'https://reconcile-api.onrender.com';
+    return 'https://reconcile-api-9htz.onrender.com';
   }
   return 'http://localhost:8000';
 }
