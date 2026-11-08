@@ -1,7 +1,34 @@
 /// <reference types="vite/client" />
 
-export const API_BASE_URL: string =
-  (import.meta.env?.VITE_API_URL as string) || 'http://localhost:8000';
+export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const custom = window.localStorage.getItem('reconcile_api_url');
+    if (custom && custom.trim().length > 0) {
+      return custom.trim().replace(/\/+$/, '');
+    }
+  }
+  const envUrl = import.meta.env?.VITE_API_URL as string;
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  // In production (HTTPS origin, e.g. GitHub Pages or Netlify), fallback to Render cloud backend
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    return 'https://reconcile-api.onrender.com';
+  }
+  return 'http://localhost:8000';
+}
+
+export function setCustomApiUrl(url: string): void {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    if (url.trim().length === 0) {
+      window.localStorage.removeItem('reconcile_api_url');
+    } else {
+      window.localStorage.setItem('reconcile_api_url', url.trim());
+    }
+  }
+}
+
+export const API_BASE_URL: string = getApiBaseUrl();
 
 const AUTH_TOKEN_KEY = 'reconcile_auth_token';
 const RETRY_DELAYS = [2000, 5000, 10000];
@@ -42,7 +69,7 @@ function buildUrl(path: string): string {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  const base = API_BASE_URL.replace(/\/+$/, '');
+  const base = getApiBaseUrl();
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   return `${base}${cleanPath}`;
 }
