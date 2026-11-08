@@ -24,6 +24,7 @@ interface SettingsTabProps {
   onOpenGmail: () => void;
   onOpenNotifications: () => void;
   onResetDemo: () => void;
+  onOpenOnboarding: () => void;
   showToast: (msg: string) => void;
 }
 
@@ -36,13 +37,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   onOpenGmail,
   onOpenNotifications,
   onResetDemo,
+  onOpenOnboarding,
   showToast,
 }) => {
-  // Mascot variant preference (3D Duolingo vs 2D Flat Vector)
-  const [mascotVariant, setMascotVariant] = useState<'3d' | '2d'>(() => {
-    return (localStorage.getItem('reconcile_mascot_variant') as '3d' | '2d') || '3d';
-  });
-
   // Selected default currency preference
   const [defaultCurrency, setDefaultCurrency] = useState<string>(() => {
     return localStorage.getItem('reconcile_pref_currency') || 'NGN';
@@ -52,12 +49,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   const [alertDays, setAlertDays] = useState<number>(() => {
     return parseInt(localStorage.getItem('reconcile_pref_alert_days') || '3', 10);
   });
-
-  const handleSelectMascotVariant = (variant: '3d' | '2d') => {
-    setMascotVariant(variant);
-    localStorage.setItem('reconcile_mascot_variant', variant);
-    showToast(`Mascot style switched to ${variant.toUpperCase()}!`);
-  };
 
   const handleSelectCurrency = (curr: string) => {
     setDefaultCurrency(curr);
@@ -143,7 +134,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         ) : (
           <div className="p-5 rounded-2xl bg-[#F5F2EA] border border-[#E5E0D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <MascotLogo size={46} variant={mascotVariant} interactive={true} />
+              <MascotLogo size={46} interactive={true} />
               <div>
                 <div className="text-sm font-bold text-[#171717]">Guest / Offline Mode</div>
                 <div className="text-xs text-[#737373] mt-0.5 max-w-md">
@@ -162,68 +153,36 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         )}
       </div>
 
-      {/* Mascot Character & Appearance (Duolingo Style 3D vs 2D) */}
+      {/* Signature Financial Guardian & Interactive Tour */}
       <div className="p-6 bg-white rounded-3xl border border-[#E5E0D8] space-y-4 shadow-xs">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-[#171717] flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[#3D5438]" />
-            <span>Mascot Character & Logo Style</span>
+            <span>The Financial Guardian</span>
           </h2>
           <span className="text-xs font-bold text-[#3D5438] bg-[#E2EBD8] px-2.5 py-0.5 rounded-full">
-            Duolingo Inspired
+            Signature Character
           </span>
         </div>
 
-        <p className="text-xs text-[#737373]">
-          Choose the character aesthetic for Reconcile. Both options feature the friendly financial guardian owl with zero brand typography.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-          {/* 3D Pixar Clay Mascot Option */}
-          <div
-            onClick={() => handleSelectMascotVariant('3d')}
-            className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-4 ${
-              mascotVariant === '3d'
-                ? 'border-[#3D5438] bg-[#FAF8F5] shadow-xs'
-                : 'border-[#E5E0D8] bg-white hover:border-[#D1C9BE]'
-            }`}
-          >
-            <MascotLogo size={52} variant="3d" interactive={false} />
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-[#171717]">3D Pixar / Clay Character</span>
-                {mascotVariant === '3d' && (
-                  <CheckCircle2 className="w-4 h-4 text-[#3D5438]" />
-                )}
-              </div>
-              <p className="text-[11px] text-[#737373] mt-0.5">
-                Vibrant 3D clay-render owl holding a gold coin with studio lighting and soft shadows.
+        <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <MascotLogo size={58} interactive={true} />
+            <div>
+              <div className="font-bold text-sm text-[#171717]">Vigilant Owl Guardian</div>
+              <p className="text-xs text-[#737373] mt-0.5 max-w-md">
+                Watching over your renewal cycles, notice dates, and recurring charges so you stay in 100% control of your budget.
               </p>
             </div>
           </div>
 
-          {/* 2D Flat Vector Mascot Option */}
-          <div
-            onClick={() => handleSelectMascotVariant('2d')}
-            className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-4 ${
-              mascotVariant === '2d'
-                ? 'border-[#3D5438] bg-[#FAF8F5] shadow-xs'
-                : 'border-[#E5E0D8] bg-white hover:border-[#D1C9BE]'
-            }`}
+          <button
+            type="button"
+            onClick={onOpenOnboarding}
+            className="min-h-[44px] px-4 py-2 rounded-xl bg-white hover:bg-[#FAF8F5] border border-[#E5E0D8] text-xs font-bold text-[#171717] shadow-2xs transition-all flex items-center gap-2 whitespace-nowrap self-start sm:self-auto active:scale-95 cursor-pointer"
           >
-            <MascotLogo size={52} variant="2d" interactive={false} />
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-[#171717]">2D Duo Vector Emblem</span>
-                {mascotVariant === '2d' && (
-                  <CheckCircle2 className="w-4 h-4 text-[#3D5438]" />
-                )}
-              </div>
-              <p className="text-[11px] text-[#737373] mt-0.5">
-                Classic Duolingo flat vector design with bold outlines, minimalist curves, and clean shapes.
-              </p>
-            </div>
-          </div>
+            <span>Replay App Tour</span>
+          </button>
         </div>
       </div>
 

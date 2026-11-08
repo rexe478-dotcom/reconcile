@@ -10,7 +10,8 @@ import {
   Clock, 
   TrendingUp, 
   Download,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from 'lucide-react';
 import { Subscription } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
@@ -22,6 +23,7 @@ interface DashboardTabProps {
   onNavigateTab: (tab: 'dashboard' | 'subscriptions' | 'calendar' | 'settings') => void;
   onAddSubscription: () => void;
   onOpenNotifications: () => void;
+  onOpenOnboarding?: () => void;
 }
 
 export const DashboardTab: React.FC<DashboardTabProps> = ({
@@ -30,6 +32,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   onNavigateTab,
   onAddSubscription,
   onOpenNotifications,
+  onOpenOnboarding,
 }) => {
   const activeSubs = useMemo(() => {
     return subscriptions.filter((s) => s.status === 'active');
@@ -87,6 +90,17 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {onOpenOnboarding && (
+            <button
+              onClick={onOpenOnboarding}
+              className="min-h-[44px] hidden sm:flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#FAF8F5] border border-[#E5E0D8] text-xs font-bold text-[#171717] shadow-2xs btn-tactile"
+              title="Interactive Feature Guide"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#3D5438]" />
+              <span>How It Works</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenNotifications}
             className="min-h-[44px] flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-xs font-bold text-[#171717] shadow-2xs btn-tactile"

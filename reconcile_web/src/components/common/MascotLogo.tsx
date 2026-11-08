@@ -4,26 +4,18 @@ interface MascotLogoProps {
   size?: number;
   className?: string;
   interactive?: boolean;
-  variant?: '3d' | '2d';
+  variant?: '3d' | '2d'; // Kept for interface backward compatibility
 }
 
 export const MascotLogo: React.FC<MascotLogoProps> = ({
   size = 38,
   className = '',
   interactive = true,
-  variant,
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  // Read preferred style from prop or localStorage
-  const activeVariant =
-    variant ||
-    ((typeof window !== 'undefined' &&
-      (localStorage.getItem('reconcile_mascot_variant') as '3d' | '2d')) ||
-      '3d');
-
-  // Dynamic image source depending on selected 2D or 3D Duolingo-style variant
-  const imageSrc = activeVariant === '2d' ? './mascot-2d.jpg' : './mascot-3d.jpg';
+  // Single definitive signature mascot across entire app
+  const imageSrc = './mascot.jpg';
 
   return (
     <div

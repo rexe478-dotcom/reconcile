@@ -31,6 +31,7 @@ import { AddEditModal } from './components/modals/AddEditModal';
 import { CancellationModal } from './components/modals/CancellationModal';
 import { GmailOAuthModal } from './components/modals/GmailOAuthModal';
 import { NotificationCenterModal } from './components/modals/NotificationCenterModal';
+import { OnboardingModal } from './components/modals/OnboardingModal';
 import { AuthView } from './views/AuthView';
 
 type AppTab = 'dashboard' | 'subscriptions' | 'calendar' | 'settings';
@@ -38,6 +39,12 @@ type AppTab = 'dashboard' | 'subscriptions' | 'calendar' | 'settings';
 export const App: React.FC = () => {
   // Navigation
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
+
+  // Interactive Onboarding Tour (Auto-opens on first visit, or accessible anytime from Settings/Dashboard)
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return !localStorage.getItem('reconcile_onboarding_completed');
+  });
 
   // Clerk Auth Integration
   const { user: clerkUser, isSignedIn: isClerkSignedIn } = useUser();
@@ -337,6 +344,7 @@ export const App: React.FC = () => {
               setIsAddEditOpen(true);
             }}
             onOpenNotifications={() => setIsNotificationOpen(true)}
+            onOpenOnboarding={() => setIsOnboardingOpen(true)}
           />
         )}
 
@@ -372,6 +380,7 @@ export const App: React.FC = () => {
             onOpenGmail={() => setIsGmailOpen(true)}
             onOpenNotifications={() => setIsNotificationOpen(true)}
             onResetDemo={handleResetDemo}
+            onOpenOnboarding={() => setIsOnboardingOpen(true)}
             showToast={showToast}
           />
         )}
@@ -519,6 +528,12 @@ export const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 7. Animated In-App Onboarding Experience */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+      />
     </div>
   );
 };
