@@ -14,9 +14,13 @@ export interface RealGmailInvoice {
 }
 
 export class RealGmailService {
-  private static DEFAULT_CLIENT_ID = '34227622854-asdlfh7bn16nq1p9bbube90f7ic80q0a.apps.googleusercontent.com';
+  private static DEFAULT_CLIENT_ID = '34227622854-5j5dgr6ui89e1b1urp8v48vp24mm5rvi.apps.googleusercontent.com';
 
   public static getClientId(): string {
+    const cached = localStorage.getItem('reconcile_google_client_id');
+    if (cached && (cached.includes('asdlfh7bn16nq1p9') || cached.includes('mock'))) {
+      localStorage.removeItem('reconcile_google_client_id');
+    }
     return (
       (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) ||
       localStorage.getItem('reconcile_google_client_id') ||
