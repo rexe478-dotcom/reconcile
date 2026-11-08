@@ -271,51 +271,28 @@ export const App: React.FC = () => {
             </button>
           </nav>
 
-          {/* Right Header Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Cloud Sync Status */}
+          {/* Right Header Action: Only Sign In / User Account at the very end */}
+          <div className="flex items-center">
             {isAuthenticated ? (
-              <div 
+              <button 
                 onClick={() => setActiveTab('settings')}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2EBD8]/60 text-[#3D5438] border border-[#E2EBD8] text-[11px] font-bold cursor-pointer"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E2EBD8]/60 hover:bg-[#E2EBD8] text-[#3D5438] border border-[#E2EBD8] text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
                 title={`Cloud Connected: ${currentUser?.email}`}
               >
-                <Cloud className={`w-3.5 h-3.5 ${isSyncing ? 'animate-bounce' : ''}`} />
-                <span className="hidden sm:inline">PostgreSQL Synced</span>
-              </div>
+                <div className="w-5 h-5 rounded-full bg-[#3D5438] text-white flex items-center justify-center text-[10px] font-black">
+                  {currentUser?.email ? currentUser.email[0].toUpperCase() : 'U'}
+                </div>
+                <span className="max-w-[130px] truncate">{currentUser?.email || 'Account'}</span>
+              </button>
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FAF8F5] hover:bg-[#F0ECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] text-[11px] font-bold transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold transition-all active:scale-95 shadow-xs cursor-pointer"
               >
-                <CloudOff className="w-3.5 h-3.5 text-amber-600" />
-                <span className="hidden sm:inline">Sign In / Sync</span>
+                <UserIcon className="w-3.5 h-3.5" />
+                <span>Sign In</span>
               </button>
             )}
-
-            {/* Notification Bell */}
-            <button
-              onClick={() => setIsNotificationOpen(true)}
-              className="relative p-2 rounded-full bg-[#FAF8F5] hover:bg-[#F0ECE4] border border-[#E5E0D8] text-[#737373] hover:text-[#171717] transition-colors"
-              title="Renewal Alerts"
-            >
-              <Bell className="w-4 h-4 text-[#171717]" />
-              {upcomingAlertsCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#EA4335] ring-2 ring-white" />
-              )}
-            </button>
-
-            {/* Add Subscription Button */}
-            <button
-              onClick={() => {
-                setEditingSub(null);
-                setIsAddEditOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-xs shadow-xs transition-all active:scale-95"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">Add Subscription</span>
-            </button>
           </div>
         </div>
       </header>
