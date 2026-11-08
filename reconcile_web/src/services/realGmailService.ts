@@ -1,4 +1,4 @@
-﻿import { Subscription } from '../types/subscription';
+import { Subscription } from '../types/subscription';
 
 declare const google: any;
 
@@ -14,13 +14,13 @@ export interface RealGmailInvoice {
 }
 
 export class RealGmailService {
-  private static DEFAULT_CLIENT_ID = '384918239481-mock.apps.googleusercontent.com';
+  private static DEFAULT_CLIENT_ID = '34227622854-asdlfh7bn16nq1p9bbube90f7ic80q0a.apps.googleusercontent.com';
 
   public static getClientId(): string {
     return (
-      localStorage.getItem('reconcile_google_client_id') ||
       (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) ||
-      ''
+      localStorage.getItem('reconcile_google_client_id') ||
+      this.DEFAULT_CLIENT_ID
     );
   }
 

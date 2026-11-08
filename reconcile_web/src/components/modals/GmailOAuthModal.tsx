@@ -189,39 +189,15 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
             </div>
           )}
 
-          {/* Google Cloud OAuth Configuration Section */}
-          <div className="pt-4 border-t border-[#E5E0D8] space-y-2.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-[#171717]">Google Cloud OAuth Client ID</span>
-              <a
-                href="https://console.cloud.google.com/apis/credentials"
-                target="_blank"
-                rel="noreferrer"
-                className="text-[#3D5438] hover:underline flex items-center gap-1 font-semibold min-h-[44px]"
-              >
-                <span>Google Console</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+          {/* Security & Verification Trust Badge */}
+          <div className="pt-4 border-t border-[#E5E0D8] flex items-center justify-between text-xs text-[#737373]">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#3D5438]" />
+              <span className="font-bold text-[#171717]">Google OAuth 2.0 Connected</span>
             </div>
-
-            <form onSubmit={handleSaveClientId} className="flex gap-2">
-              <input
-                type="text"
-                placeholder="apps.googleusercontent.com Client ID"
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                className="flex-1 min-h-[44px] px-3.5 py-2 rounded-xl bg-[#FAF8F5] border border-[#E5E0D8] text-xs font-mono text-[#171717] focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
-              />
-              <button
-                type="submit"
-                className="min-h-[44px] px-4 py-2 rounded-xl bg-white hover:bg-[#F0ECE4] active:scale-95 border border-[#E5E0D8] text-xs font-bold text-[#171717] transition-all whitespace-nowrap btn-tactile cursor-pointer"
-              >
-                {savedClientId ? 'Saved \u2713' : 'Save ID'}
-              </button>
-            </form>
-            <p className="text-[11px] text-[#737373]">
-              Required by Google to authorize access to your Gmail. Add authorized origin: <code className="bg-[#FAF8F5] px-1 py-0.5 rounded text-[10px]">https://rexe478-dotcom.github.io</code>.
-            </p>
+            <span className="text-[11px] text-[#737373] bg-[#FAF8F5] px-2.5 py-1 rounded-full border border-[#E5E0D8]">
+              Read-Only Receipt Scope
+            </span>
           </div>
         </div>
 
