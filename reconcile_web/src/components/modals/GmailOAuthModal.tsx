@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, Mail, AlertCircle, CheckCircle2, Lock, Key, ExternalLink } from 'lucide-react';
+import { X, ShieldCheck, Mail, AlertCircle, CheckCircle2, Lock, Key, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { Subscription } from '../../types/subscription';
+import { RealGmailService } from '../../services/realGmailService';
+import { BrandIcon } from '../common/BrandIcon';
 
 interface GmailOAuthModalProps {
   isOpen: boolean;
@@ -13,151 +15,217 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
   onClose,
   onImportCandidate,
 }) => {
-  const [imported, setImported] = useState(false);
-  const [clientId, setClientId] = useState(() => {
-    return localStorage.getItem('reconcile_google_client_id') || import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-  });
+  const [clientId, setClientId] = useState(() => RealGmailService.getClientId());
   const [savedClientId, setSavedClientId] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [discovered, setDiscovered] = useState<Subscription[]>([]);
+  const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
 
   if (!isOpen) return null;
 
-  const sampleCandidate: Subscription = {
-    id: `sub-canva-${Date.now()}`,
-    providerName: 'Canva Pro',
-    planName: 'Annual Design Suite',
-    amount: 11000,
-    currency: 'NGN',
-    interval: 'year',
-    intervalCount: 1,
-    nextRenewalDate: '2026-12-15',
-    anchorDay: 15,
-    category: 'Productivity',
-    provenance: 'gmail',
-    status: 'needs_review',
-    remindersEnabled: true,
-    reminderDaysBefore: [7, 3, 1],
-    cancellationUrl: 'https://www.canva.com/account-settings/billing-and-teams',
-    notes: 'Detected from invoice receipt. Review renewal terms before approval.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  const handleSimulateCandidate = () => {
-    onImportCandidate(sampleCandidate);
-    setImported(true);
-    setTimeout(() => {
-      onClose();
-      setImported(false);
-    }, 1200);
-  };
-
   const handleSaveClientId = (e: React.FormEvent) => {
     e.preventDefault();
-    if (clientId.trim()) {
-      localStorage.setItem('reconcile_google_client_id', clientId.trim());
-      setSavedClientId(true);
-      setTimeout(() => setSavedClientId(false), 2000);
+    RealGmailService.setClientId(clientId);
+    setSavedClientId(true);
+    setTimeout(() => setSavedClientId(false), 2000);
+  };
+
+  const handleConnectAndScan = async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      if (!clientId.trim()) {
+        setError('Please enter your Google Cloud OAuth Client ID below first to connect your Google account.');
+        setIsLoading(false);
+        return;
+      }
+
+      // 1. Request real Google OAuth consent & access token
+      const token = await RealGmailService.requestGoogleAccessToken();
+
+      // 2. Fetch real subscription receipts from Gmail API
+      const realSubs = await RealGmailService.fetchRealSubscriptionReceipts(token);
+      setDiscovered(realSubs);
+
+      if (realSubs.length === 0) {
+        setError('No subscription invoices or receipts found in your recent Gmail messages.');
+      }
+    } catch (err: any) {
+      console.error('Google Sign-In / Gmail error:', err);
+      if (err.message === 'MISSING_CLIENT_ID') {
+        setError('Please configure your Google Cloud OAuth Client ID below to connect.');
+      } else if (err.message === 'GOOGLE_GSI_NOT_LOADED') {
+        setError('Google Identity Services library is still loading. Please try again in a moment.');
+      } else {
+        setError(err.message || 'Google Sign-In failed. Please check your OAuth Client ID.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleImport = (sub: Subscription) => {
+    onImportCandidate(sub);
+    setImportedIds((prev) => new Set(prev).add(sub.id));
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg rounded-3xl bg-[#FAF8F5] border border-[#E5E0D8] shadow-2xl p-6 lg:p-7 space-y-4 max-h-[90vh] overflow-y-auto text-[#171717]">
-        <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D8]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#E2EBD8] flex items-center justify-center text-[#3D5438]">
-              <Mail className="w-4 h-4" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+      <div 
+        className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-[#E5E0D8] overflow-hidden flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 bg-[#FAF8F5] border-b border-[#E5E0D8] flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-white border border-[#E5E0D8] flex items-center justify-center text-[#EA4335] shadow-xs">
+              <Mail className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-[#171717]">Gmail Subscription Discovery</h3>
-              <p className="text-xs text-[#737373]">Consent & Privacy Overview</p>
+              <h3 className="text-xl font-black text-[#171717] tracking-tight">Real Gmail Subscription Sync</h3>
+              <p className="text-xs text-[#737373]">
+                Connect your Google Account to scan for real receipts from Netflix, Spotify, Apple, Google, etc.
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] transition-colors"
+            className="p-2 rounded-full hover:bg-[#EAE6DD] text-[#737373] transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Honest Architecture & Security Commitment */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E5E0D8] space-y-2.5 text-xs text-[#171717]">
-          <div className="flex items-center gap-2 text-[#171717] font-bold">
-            <ShieldCheck className="w-4 h-4 text-[#3D5438]" />
-            <span>Honest & Privacy-First Architecture</span>
+        {/* Content Body */}
+        <div className="p-6 overflow-y-auto space-y-5">
+          {/* Privacy Guarantee */}
+          <div className="p-3.5 rounded-2xl bg-[#E2EBD8]/50 border border-[#E2EBD8] flex items-start gap-2.5 text-xs">
+            <ShieldCheck className="w-4 h-4 text-[#3D5438] shrink-0 mt-0.5" />
+            <div className="text-[#3D5438] leading-relaxed">
+              <span className="font-bold">Zero Password Sharing:</span> Authenticates directly through official Google OAuth 2.0 with read-only access to invoice and receipt emails.
+            </div>
           </div>
-          <p className="leading-relaxed text-[#737373]">
-            Reconcile uses Google OAuth 2.0 with minimal read-only metadata scopes. We never request your Google account password and never store full email bodies.
-          </p>
-          <ul className="space-y-1.5 pt-1 text-[#171717]">
-            <li className="flex items-center gap-2">
-              <Lock className="w-3.5 h-3.5 text-[#3D5438]" />
-              <span>Zero raw email retention — only parsed renewal receipt dates and amounts.</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5438]" />
-              <span>Candidate Isolation: Subscriptions are never auto-charged or added without your explicit review.</span>
-            </li>
-          </ul>
-        </div>
 
-        {/* Google Cloud OAuth Configuration */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E5E0D8] space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#171717] flex items-center gap-1.5">
-              <Key className="w-3.5 h-3.5 text-[#3D5438]" />
-              <span>Google OAuth 2.0 Client ID</span>
-            </span>
-            <a
-              href="https://console.cloud.google.com/apis/credentials"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] text-[#3D5438] hover:underline font-semibold flex items-center gap-0.5"
+          {/* Connect Action Button */}
+          <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] text-center space-y-3">
+            <button
+              onClick={handleConnectAndScan}
+              disabled={isLoading}
+              className="w-full py-3 px-4 rounded-xl bg-[#3D5438] hover:bg-[#32462E] disabled:bg-gray-300 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2"
             >
-              <span>Google Cloud Console</span>
-              <ExternalLink className="w-2.5 h-2.5" />
-            </a>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Connecting to Google & Scanning Receipts...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Sign in with Google & Scan Real Inbox</span>
+                </>
+              )}
+            </button>
+
+            {error && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 text-left flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleSaveClientId} className="space-y-2">
-            <input
-              type="text"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com"
-              className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E0D8] bg-[#FAF8F5] focus:bg-white focus:border-[#3D5438] outline-none font-mono"
-            />
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-[#737373]">
-                {savedClientId ? '✓ Client ID saved to browser' : 'Optional. Used for direct PKCE login.'}
-              </span>
+          {/* Discovered Real Subscriptions List */}
+          {discovered.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-[#171717] uppercase tracking-wider">
+                Discovered Subscriptions ({discovered.length})
+              </h4>
+              <div className="space-y-2">
+                {discovered.map((sub) => {
+                  const isImported = importedIds.has(sub.id);
+                  return (
+                    <div
+                      key={sub.id}
+                      className="p-3.5 rounded-2xl bg-white border border-[#E5E0D8] flex items-center justify-between shadow-2xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <BrandIcon providerName={sub.providerName} size={36} />
+                        <div>
+                          <div className="text-sm font-bold text-[#171717]">{sub.providerName}</div>
+                          <div className="text-xs text-[#737373]">
+                            ?{sub.amount.toLocaleString()} � Next renewal: {sub.nextRenewalDate}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleImport(sub)}
+                        disabled={isImported}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                          isImported
+                            ? 'bg-gray-100 text-gray-500 cursor-default'
+                            : 'bg-[#3D5438] hover:bg-[#32462E] text-white shadow-2xs'
+                        }`}
+                      >
+                        {isImported ? 'Imported ?' : 'Add to Tracker +'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Google Cloud OAuth Configuration Section */}
+          <div className="pt-4 border-t border-[#E5E0D8] space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#171717]">Google Cloud OAuth Client ID</span>
+              <a
+                href="https://console.cloud.google.com/apis/credentials"
+                target="_blank"
+                rel="noreferrer"
+                className="text-[#3D5438] hover:underline flex items-center gap-1 font-semibold"
+              >
+                <span>Google Console</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+
+            <form onSubmit={handleSaveClientId} className="flex gap-2">
+              <input
+                type="text"
+                placeholder="apps.googleusercontent.com Client ID"
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                className="flex-1 px-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#E5E0D8] text-xs font-mono text-[#171717] focus:outline-hidden focus:border-[#3D5438]"
+              />
               <button
                 type="submit"
-                className="px-3 py-1 rounded-lg bg-[#FAF8F5] hover:bg-[#EFECE4] border border-[#E5E0D8] text-[11px] font-bold text-[#171717]"
+                className="px-4 py-2 rounded-xl bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-xs font-bold text-[#171717] transition-colors whitespace-nowrap"
               >
-                Save
+                {savedClientId ? 'Saved ?' : 'Save ID'}
               </button>
-            </div>
-          </form>
+            </form>
+            <p className="text-[11px] text-[#737373]">
+              Required by Google to authorize access to your Gmail. Add authorized origin: <code className="bg-[#FAF8F5] px-1 py-0.5 rounded text-[10px]">https://rexe478-dotcom.github.io</code>.
+            </p>
+          </div>
         </div>
 
-        {/* Action Button */}
-        <div className="pt-1">
-          {imported ? (
-            <div className="w-full py-3 rounded-full bg-[#E2EBD8] text-[#3D5438] font-bold text-center text-xs flex items-center justify-center gap-2 border border-[#3D5438]/30">
-              <CheckCircle2 className="w-4 h-4 text-[#3D5438]" />
-              <span>Imported Canva Pro Candidate for Review!</span>
-            </div>
-          ) : (
-            <button
-              onClick={handleSimulateCandidate}
-              className="w-full py-3.5 px-4 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
-            >
-              <Mail className="w-4 h-4" />
-              <span>Test Receipt Discovery (Sample Canva Pro)</span>
-            </button>
-          )}
+        {/* Footer */}
+        <div className="p-4 bg-[#FAF8F5] border-t border-[#E5E0D8] flex items-center justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl text-xs font-bold text-[#737373] hover:bg-[#EAE6DD] transition-colors"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

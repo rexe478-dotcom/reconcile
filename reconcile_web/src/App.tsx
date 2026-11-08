@@ -18,6 +18,7 @@ import { StorageService } from './services/storageService';
 import { AuthService, UserProfile } from './services/authService';
 import { SubscriptionApi } from './services/subscriptionApi';
 import { NotificationService } from './services/notificationService';
+import { MascotLogo } from './components/common/MascotLogo';
 
 // Tabs & Modals
 import { DashboardTab } from './views/DashboardTab';
@@ -203,14 +204,12 @@ export const App: React.FC = () => {
       {/* Top Application Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Mark */}
+          {/* Brand Mark with Vigilant Owl Mascot (NO text inside logo) */}
           <div 
             onClick={() => setActiveTab('dashboard')}
-            className="flex items-center gap-2.5 cursor-pointer select-none"
+            className="flex items-center gap-3 cursor-pointer select-none group"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#3D5438] flex items-center justify-center text-white font-black text-sm shadow-xs">
-              R
-            </div>
+            <MascotLogo size={38} className="group-hover:shadow-md" />
             <div>
               <span className="font-extrabold tracking-[0.2em] text-xs text-[#171717] block">
                 RECONCILE

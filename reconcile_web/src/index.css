@@ -32,3 +32,30 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #C4BCAD;
 }
+
+/* Emil Kowalski Micro-interaction & Spring Animation Tokens */
+@layer utilities {
+  .btn-tactile {
+    @apply active:scale-[0.97] transition-all duration-150 ease-out select-none cursor-pointer;
+  }
+  
+  .card-lift {
+    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  .spring-dialog {
+    animation: springPop 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes springPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
