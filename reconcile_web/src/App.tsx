@@ -1,72 +1,62 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Smartphone, Grid, Monitor, RefreshCw, Bell, Search, ShieldCheck, Sparkles, Download, Cloud, CloudOff, LogOut, User as UserIcon, Calendar } from 'lucide-react';
+import { 
+  Plus, 
+  Bell, 
+  Cloud, 
+  CloudOff, 
+  Calendar as CalendarIcon, 
+  Grid, 
+  LayoutDashboard, 
+  Settings as SettingsIcon, 
+  User as UserIcon, 
+  RefreshCw,
+  Sparkles,
+  X
+} from 'lucide-react';
 import { Subscription } from './types/subscription';
 import { StorageService } from './services/storageService';
-import { InsightsCalculator } from './services/insightsCalculator';
 import { AuthService, UserProfile } from './services/authService';
 import { SubscriptionApi } from './services/subscriptionApi';
-import { PhoneFrame } from './components/common/PhoneFrame';
-import { PhoneBottomNav } from './components/common/PhoneBottomNav';
-import { Screen1Onboarding } from './views/Screen1Onboarding';
-import { Screen2Home } from './views/Screen2Home';
-import { Screen3Subscriptions } from './views/Screen3Subscriptions';
-import { Screen4Details } from './views/Screen4Details';
-import { LandingPageView } from './views/LandingPageView';
-import { AuthView } from './views/AuthView';
+import { NotificationService } from './services/notificationService';
+
+// Tabs & Modals
+import { DashboardTab } from './views/DashboardTab';
+import { SubscriptionsTab } from './views/SubscriptionsTab';
+import { CalendarTab } from './views/CalendarTab';
+import { SettingsTab } from './views/SettingsTab';
+import { SubscriptionDetailsModal } from './components/modals/SubscriptionDetailsModal';
 import { AddEditModal } from './components/modals/AddEditModal';
 import { CancellationModal } from './components/modals/CancellationModal';
 import { GmailOAuthModal } from './components/modals/GmailOAuthModal';
 import { NotificationCenterModal } from './components/modals/NotificationCenterModal';
-import { downloadCalendarIcs } from './services/calendarExportService';
-import { NotificationService } from './services/notificationService';
-import { BrandIcon } from './components/common/BrandIcon';
+import { AuthView } from './views/AuthView';
 
-type ViewMode = 'landing' | 'phone' | 'all4' | 'desktop';
-type MobileScreen = 'onboarding' | 'home' | 'subscriptions' | 'details' | 'saved' | 'profile';
+type AppTab = 'dashboard' | 'subscriptions' | 'calendar' | 'settings';
 
 export const App: React.FC = () => {
-  // Authentication & Cloud Sync State
+  // Navigation
+  const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
+
+  // Authentication & Remote State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => AuthService.isAuthenticated());
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
-  // Notifications Modal State
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-
-  // State loaded dynamically from localStorage or cloud API
+  // Subscriptions State
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(() =>
     StorageService.loadSubscriptions()
   );
 
-  // View presentation mode: 'landing' (PWA install landing), 'phone' (interactive simulator), 'all4' (exact 4-screens replica), 'desktop'
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    // If standalone or explicit app source query, go straight to phone app
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true ||
-      window.location.search.includes('source=pwa') ||
-      window.location.search.includes('mode=app');
-    return isStandalone ? 'phone' : 'landing';
-  });
-
-  // Active screen in interactive phone mode
-  const [currentScreen, setCurrentScreen] = useState<MobileScreen>('home');
-  const [activeBottomTab, setActiveBottomTab] = useState<'home' | 'explore' | 'saved' | 'profile'>('home');
-
-  // Selected subscription for details view
-  const [selectedSub, setSelectedSub] = useState<Subscription>(() => {
-    return (
-      subscriptions.find((s) => s.providerName.toLowerCase().includes('spotify')) ||
-      subscriptions[0]
-    );
-  });
+  // Selected subscription for details drawer/modal
+  const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
 
   // Modals state
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
   const [cancellingSub, setCancellingSub] = useState<Subscription | null>(null);
   const [isGmailOpen, setIsGmailOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   // Toast feedback banner
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -76,12 +66,12 @@ export const App: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Persist to localStorage as offline cache on any state modification
+  // Persist to localStorage as offline cache on every state modification
   useEffect(() => {
     StorageService.saveSubscriptions(subscriptions);
   }, [subscriptions]);
 
-  // Fetch profile and remote subscriptions when authenticated
+  // Load user profile & sync with backend when authenticated
   const loadRemoteData = useCallback(async () => {
     if (!AuthService.isAuthenticated()) return;
     setIsSyncing(true);
@@ -91,12 +81,10 @@ export const App: React.FC = () => {
       const remote = await SubscriptionApi.list();
       if (remote && remote.length > 0) {
         setSubscriptions(remote);
-        const spotify = remote.find((s) => s.providerName.toLowerCase().includes('spotify')) || remote[0];
-        setSelectedSub(spotify);
       }
       showToast(`Synced with cloud database as ${profile.email}`);
     } catch (err) {
-      console.warn('Could not sync with backend API, using local storage', err);
+      console.warn('Backend sync failed, falling back to local storage', err);
     } finally {
       setIsSyncing(false);
     }
@@ -108,7 +96,7 @@ export const App: React.FC = () => {
     }
   }, [isAuthenticated, loadRemoteData]);
 
-  // Proactive check to dispatch browser push alerts if permission granted
+  // Push notifications renewal check
   useEffect(() => {
     NotificationService.checkAndNotifyRenewals(subscriptions);
   }, [subscriptions]);
@@ -117,31 +105,7 @@ export const App: React.FC = () => {
     return NotificationService.getUpcomingAlerts(subscriptions).length;
   }, [subscriptions]);
 
-  // Derived Calculations
-  const insights = useMemo(() => {
-    return InsightsCalculator.computeInsights(subscriptions);
-  }, [subscriptions]);
-
-  const totalSpendFormatted = useMemo(() => {
-    return InsightsCalculator.formatCurrency(insights.totalMonthlyNormalized);
-  }, [insights]);
-
-  const nextUpSub = useMemo(() => {
-    const active = subscriptions.filter((s) => s.status === 'active');
-    if (active.length === 0) return undefined;
-    return [...active].sort((a, b) => a.nextRenewalDate.localeCompare(b.nextRenewalDate))[0];
-  }, [subscriptions]);
-
-  // Synchronize bottom tab with screen
-  const handleSelectBottomTab = (tab: 'home' | 'explore' | 'saved' | 'profile') => {
-    setActiveBottomTab(tab);
-    if (tab === 'home') setCurrentScreen('home');
-    else if (tab === 'explore') setCurrentScreen('subscriptions');
-    else if (tab === 'saved') setCurrentScreen('saved');
-    else if (tab === 'profile') setCurrentScreen('profile');
-  };
-
-  // Subscription CRUD Handlers (Connected to Cloud API + Local cache)
+  // CRUD Handlers
   const handleSaveSubscription = async (sub: Subscription) => {
     let savedSub = sub;
     if (isAuthenticated) {
@@ -153,7 +117,7 @@ export const App: React.FC = () => {
           savedSub = await SubscriptionApi.create(sub);
         }
       } catch (err) {
-        console.warn('API save failed, fallback to local', err);
+        console.warn('API save failed, saved to local cache', err);
         showToast('Saved to local storage.');
       } finally {
         setIsSyncing(false);
@@ -168,7 +132,7 @@ export const App: React.FC = () => {
       return [savedSub, ...prev];
     });
 
-    if (selectedSub.id === sub.id || selectedSub.id === savedSub.id) {
+    if (selectedSub && (selectedSub.id === sub.id || selectedSub.id === savedSub.id)) {
       setSelectedSub(savedSub);
     }
     showToast(`Saved "${savedSub.providerName}".`);
@@ -183,11 +147,8 @@ export const App: React.FC = () => {
       }
     }
     setSubscriptions((prev) => prev.filter((s) => s.id !== id));
-    if (selectedSub.id === id) {
-      setSelectedSub(subscriptions.find((s) => s.id !== id) || subscriptions[0]);
-    }
-    if (currentScreen === 'details') {
-      setCurrentScreen('subscriptions');
+    if (selectedSub && selectedSub.id === id) {
+      setSelectedSub(null);
     }
     showToast('Subscription deleted.');
   };
@@ -206,30 +167,16 @@ export const App: React.FC = () => {
     setSubscriptions((prev) =>
       prev.map((s) => (s.id === id ? { ...s, remindersEnabled: newEnabled } : s))
     );
-    setSelectedSub((prev) => (prev.id === id ? { ...prev, remindersEnabled: newEnabled } : prev));
-    showToast('Reminder toggled.');
-  };
-
-  const handleConfirmCancelled = async (id: string) => {
-    if (isAuthenticated && id.startsWith('sub_')) {
-      try {
-        await SubscriptionApi.update(id, { status: 'cancelled', remindersEnabled: false });
-      } catch (err) {
-        console.warn('API cancellation status update failed', err);
-      }
+    if (selectedSub && selectedSub.id === id) {
+      setSelectedSub((prev) => (prev ? { ...prev, remindersEnabled: newEnabled } : null));
     }
-    setSubscriptions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status: 'cancelled', remindersEnabled: false } : s))
-    );
-    setSelectedSub((prev) => (prev.id === id ? { ...prev, status: 'cancelled', remindersEnabled: false } : prev));
-    showToast('Subscription marked as cancelled.');
+    showToast(`Reminders ${newEnabled ? 'activated' : 'muted'} for ${target.providerName}.`);
   };
 
   const handleResetDemo = () => {
     const demo = StorageService.resetToDemo();
     setSubscriptions(demo);
-    const spotify = demo.find((s) => s.providerName.toLowerCase().includes('spotify')) || demo[0];
-    setSelectedSub(spotify);
+    setSelectedSub(null);
     showToast('Reset to demo subscriptions.');
   };
 
@@ -239,571 +186,259 @@ export const App: React.FC = () => {
     setCurrentUser(null);
     const demo = StorageService.resetToDemo();
     setSubscriptions(demo);
-    setSelectedSub(demo[0]);
-    showToast('Logged out. Returned to demo mode.');
+    setSelectedSub(null);
+    showToast('Signed out. Local demo data restored.');
   };
-
-  const handleSelectSubForDetails = (sub: Subscription) => {
-    setSelectedSub(sub);
-    setCurrentScreen('details');
-  };
-
-  if (viewMode === 'landing') {
-    return (
-      <>
-        <div className="bg-[#3D5438] text-white text-[11px] font-semibold py-1.5 px-4 text-center flex items-center justify-center gap-2">
-          <span>Reconcile Cross-Platform PWA</span>
-          <span className="opacity-60">·</span>
-          <button
-            onClick={() => setViewMode('phone')}
-            className="underline hover:opacity-90 font-bold flex items-center gap-1"
-          >
-            <span>Launch Interactive Simulator</span>
-            <span>→</span>
-          </button>
-        </div>
-        <LandingPageView onLaunchApp={() => setViewMode('phone')} />
-      </>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#171717] flex flex-col font-sans selection:bg-[#E2EBD8] selection:text-[#3D5438]">
-      {/* Top Application Control Toolbar */}
-      <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-2.5 transition-all">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          {/* Brand Logo & Title */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#3D5438] flex items-center justify-center text-white font-black text-sm shadow-sm">
+      {/* Toast Feedback Notification Banner */}
+      {toastMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-[#171717] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in duration-200">
+          <span className="w-2 h-2 rounded-full bg-[#E2EBD8]" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Top Application Header */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Brand Mark */}
+          <div 
+            onClick={() => setActiveTab('dashboard')}
+            className="flex items-center gap-2.5 cursor-pointer select-none"
+          >
+            <div className="w-8 h-8 rounded-xl bg-[#3D5438] flex items-center justify-center text-white font-black text-sm shadow-xs">
               R
             </div>
             <div>
-              <span className="font-extrabold tracking-[0.18em] text-sm text-[#171717] block leading-none">
+              <span className="font-extrabold tracking-[0.2em] text-xs text-[#171717] block">
                 RECONCILE
               </span>
-              <span className="text-[10px] text-[#737373] font-medium hidden sm:inline">
-                Know What Renews Next
+              <span className="text-[10px] text-[#737373] hidden sm:block">
+                Know what renews next
               </span>
             </div>
           </div>
 
-          {/* View Mode Switcher Pills (Landing vs Interactive Phone vs 4-Screens Preview vs Desktop) */}
-          <div className="flex items-center bg-[#F0ECE4] p-1 rounded-full border border-[#E5E0D8] text-xs font-bold">
+          {/* Desktop Navigation Tabs */}
+          <nav className="hidden md:flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-2xl border border-[#E5E0D8]">
             <button
-              onClick={() => setViewMode('landing')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[#737373] hover:text-[#171717] transition-all"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Landing Page</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('phone')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
-                viewMode === 'phone'
-                  ? 'bg-white text-[#3D5438] shadow-xs'
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'dashboard'
+                  ? 'bg-white text-[#3D5438] shadow-2xs'
                   : 'text-[#737373] hover:text-[#171717]'
               }`}
             >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>Interactive Phone</span>
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
             </button>
 
             <button
-              onClick={() => setViewMode('all4')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
-                viewMode === 'all4'
-                  ? 'bg-white text-[#3D5438] shadow-xs'
+              onClick={() => setActiveTab('subscriptions')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'subscriptions'
+                  ? 'bg-white text-[#3D5438] shadow-2xs'
                   : 'text-[#737373] hover:text-[#171717]'
               }`}
             >
               <Grid className="w-3.5 h-3.5" />
-              <span>All 4 Screens View</span>
+              <span>Subscriptions ({subscriptions.length})</span>
             </button>
 
             <button
-              onClick={() => setViewMode('desktop')}
-              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
-                viewMode === 'desktop'
-                  ? 'bg-white text-[#3D5438] shadow-xs'
+              onClick={() => setActiveTab('calendar')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'calendar'
+                  ? 'bg-white text-[#3D5438] shadow-2xs'
                   : 'text-[#737373] hover:text-[#171717]'
               }`}
             >
-              <Monitor className="w-3.5 h-3.5" />
-              <span>Desktop Dashboard</span>
+              <CalendarIcon className="w-3.5 h-3.5" />
+              <span>Calendar</span>
             </button>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'settings'
+                  ? 'bg-white text-[#3D5438] shadow-2xs'
+                  : 'text-[#737373] hover:text-[#171717]'
+              }`}
+            >
+              <SettingsIcon className="w-3.5 h-3.5" />
+              <span>Settings</span>
+            </button>
+          </nav>
+
+          {/* Right Header Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Cloud Sync Status */}
             {isAuthenticated ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E5E0D8] text-xs font-semibold text-[#3D5438]">
-                <Cloud className={`w-3.5 h-3.5 ${isSyncing ? 'animate-pulse text-amber-500' : 'text-[#3D5438]'}`} />
-                <span className="hidden sm:inline text-[#171717]">{currentUser?.email || 'Cloud Synced'}</span>
-                <button
-                  onClick={handleLogout}
-                  title="Log Out"
-                  className="ml-1 p-0.5 rounded text-[#737373] hover:text-red-600 transition-colors"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                </button>
+              <div 
+                onClick={() => setActiveTab('settings')}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2EBD8]/60 text-[#3D5438] border border-[#E2EBD8] text-[11px] font-bold cursor-pointer"
+                title={`Cloud Connected: ${currentUser?.email}`}
+              >
+                <Cloud className={`w-3.5 h-3.5 ${isSyncing ? 'animate-bounce' : ''}`} />
+                <span className="hidden sm:inline">PostgreSQL Synced</span>
               </div>
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-xs font-semibold text-[#171717] transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FAF8F5] hover:bg-[#F0ECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] text-[11px] font-bold transition-colors"
               >
                 <CloudOff className="w-3.5 h-3.5 text-amber-600" />
                 <span className="hidden sm:inline">Sign In / Sync</span>
               </button>
             )}
 
+            {/* Notification Bell */}
             <button
               onClick={() => setIsNotificationOpen(true)}
-              title="Notifications & Upcoming Renewals"
-              className="relative p-2 rounded-full bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-[#737373] hover:text-[#171717] transition-colors"
+              className="relative p-2 rounded-full bg-[#FAF8F5] hover:bg-[#F0ECE4] border border-[#E5E0D8] text-[#737373] hover:text-[#171717] transition-colors"
+              title="Renewal Alerts"
             >
-              <Bell className="w-3.5 h-3.5" />
+              <Bell className="w-4 h-4 text-[#171717]" />
               {upcomingAlertsCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#EA4335] ring-2 ring-white" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#EA4335] ring-2 ring-white" />
               )}
             </button>
 
-            <button
-              onClick={handleResetDemo}
-              title="Reset Demo Data"
-              className="p-2 rounded-full bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-[#737373] hover:text-[#171717] transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-
+            {/* Add Subscription Button */}
             <button
               onClick={() => {
                 setEditingSub(null);
                 setIsAddEditOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-xs shadow-sm transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-xs shadow-xs transition-all active:scale-95"
             >
-              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Add Subscription</span>
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span className="hidden sm:inline">Add Subscription</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area based on View Mode */}
-      <main className="flex-1 flex flex-col justify-center py-6 px-4">
-        {/* ======================================================== */}
-        {/* MODE 1: Interactive Phone Simulator                      */}
-        {/* ======================================================== */}
-        {viewMode === 'phone' && (
-          <div className="flex flex-col items-center justify-center my-auto">
-            {/* Quick Screen Switcher Tabs for Simulator */}
-            <div className="flex items-center gap-1.5 mb-4 bg-white px-3 py-1.5 rounded-full border border-[#E5E0D8] shadow-xs text-xs font-semibold overflow-x-auto max-w-full">
-              <span className="text-[11px] text-[#737373] mr-1 hidden sm:inline">Quick Jump:</span>
-              <button
-                onClick={() => setCurrentScreen('onboarding')}
-                className={`px-2.5 py-1 rounded-full transition-colors ${
-                  currentScreen === 'onboarding'
-                    ? 'bg-[#3D5438] text-white'
-                    : 'text-[#737373] hover:bg-[#F0ECE4]'
-                }`}
-              >
-                1. Onboarding
-              </button>
-              <button
-                onClick={() => {
-                  setCurrentScreen('home');
-                  setActiveBottomTab('home');
-                }}
-                className={`px-2.5 py-1 rounded-full transition-colors ${
-                  currentScreen === 'home'
-                    ? 'bg-[#3D5438] text-white'
-                    : 'text-[#737373] hover:bg-[#F0ECE4]'
-                }`}
-              >
-                2. Home
-              </button>
-              <button
-                onClick={() => {
-                  setCurrentScreen('subscriptions');
-                  setActiveBottomTab('explore');
-                }}
-                className={`px-2.5 py-1 rounded-full transition-colors ${
-                  currentScreen === 'subscriptions'
-                    ? 'bg-[#3D5438] text-white'
-                    : 'text-[#737373] hover:bg-[#F0ECE4]'
-                }`}
-              >
-                3. Subscriptions
-              </button>
-              <button
-                onClick={() => setCurrentScreen('details')}
-                className={`px-2.5 py-1 rounded-full transition-colors ${
-                  currentScreen === 'details'
-                    ? 'bg-[#3D5438] text-white'
-                    : 'text-[#737373] hover:bg-[#F0ECE4]'
-                }`}
-              >
-                4. Details ({selectedSub.providerName})
-              </button>
-            </div>
-
-            {/* Interactive Phone Frame */}
-            <PhoneFrame>
-              {/* Screen 1: Onboarding */}
-              {currentScreen === 'onboarding' && (
-                <Screen1Onboarding
-                  onConnectGmail={() => setIsGmailOpen(true)}
-                  onAddManually={() => {
-                    setCurrentScreen('home');
-                    setActiveBottomTab('home');
-                  }}
-                />
-              )}
-
-              {/* Screen 2: Home */}
-              {currentScreen === 'home' && (
-                <>
-                  <Screen2Home
-                    subscriptions={subscriptions}
-                    totalSpendFormatted={totalSpendFormatted}
-                    nextUpSub={nextUpSub}
-                    onSelectSubscription={handleSelectSubForDetails}
-                    onNavigateTab={handleSelectBottomTab}
-                    onOpenNotifications={() => setIsNotificationOpen(true)}
-                  />
-                  <PhoneBottomNav
-                    activeTab={activeBottomTab}
-                    onSelectTab={handleSelectBottomTab}
-                  />
-                </>
-              )}
-
-              {/* Screen 3: Subscriptions / Explore */}
-              {currentScreen === 'subscriptions' && (
-                <>
-                  <Screen3Subscriptions
-                    subscriptions={subscriptions}
-                    onSelectSubscription={handleSelectSubForDetails}
-                    onBack={() => {
-                      setCurrentScreen('home');
-                      setActiveBottomTab('home');
-                    }}
-                  />
-                  <PhoneBottomNav
-                    activeTab={activeBottomTab}
-                    onSelectTab={handleSelectBottomTab}
-                  />
-                </>
-              )}
-
-              {/* Screen 4: Details */}
-              {currentScreen === 'details' && (
-                <Screen4Details
-                  subscription={selectedSub}
-                  onBack={() => setCurrentScreen('subscriptions')}
-                  onEdit={(sub) => {
-                    setEditingSub(sub);
-                    setIsAddEditOpen(true);
-                  }}
-                  onOpenCancellation={(sub) => setCancellingSub(sub)}
-                  onToggleReminder={handleToggleReminder}
-                />
-              )}
-
-              {/* Saved / Agenda View */}
-              {currentScreen === 'saved' && (
-                <>
-                  <div className="flex-1 p-5 overflow-y-auto space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-bold text-[#171717]">Saved Agenda</h2>
-                        <span className="text-xs text-[#737373]">{subscriptions.length} Tracked</span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          downloadCalendarIcs(subscriptions);
-                          showToast('Exported .ics calendar file.');
-                        }}
-                        className="px-3 py-1.5 rounded-full bg-white hover:bg-[#FAF8F5] border border-[#E5E0D8] text-[11px] font-bold text-[#3D5438] flex items-center gap-1.5 shadow-2xs transition-colors"
-                      >
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Export .ICS</span>
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {subscriptions.map((sub) => (
-                        <div
-                          key={sub.id}
-                          onClick={() => handleSelectSubForDetails(sub)}
-                          className="p-3 bg-white rounded-2xl border border-[#E5E0D8] flex items-center justify-between cursor-pointer hover:bg-[#FAF8F5]"
-                        >
-                          <div className="flex items-center gap-3">
-                            <BrandIcon providerName={sub.providerName} size={32} />
-                            <div>
-                              <div className="text-xs font-bold text-[#171717]">{sub.providerName}</div>
-                              <div className="text-[11px] text-[#737373]">{sub.nextRenewalDate}</div>
-                            </div>
-                          </div>
-                          <span className="text-xs font-bold text-[#171717]">₦{sub.amount.toLocaleString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <PhoneBottomNav activeTab={activeBottomTab} onSelectTab={handleSelectBottomTab} />
-                </>
-              )}
-
-              {/* Profile / Settings View */}
-              {currentScreen === 'profile' && (
-                <>
-                  <div className="flex-1 p-5 overflow-y-auto space-y-4">
-                    <h2 className="text-lg font-bold text-[#171717]">Profile & Settings</h2>
-                    <div className="p-4 bg-white rounded-2xl border border-[#E5E0D8] space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#3D5438] text-white flex items-center justify-center font-bold">
-                          {currentUser?.email ? currentUser.email[0].toUpperCase() : 'U'}
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-[#171717]">
-                            {currentUser?.email ? currentUser.email.split('@')[0] : 'Reconcile User'}
-                          </div>
-                          <div className="text-xs text-[#737373]">
-                            {currentUser?.email || 'Local Offline Mode'}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-[#E5E0D8] space-y-2 text-xs">
-                        {isAuthenticated ? (
-                          <div className="p-2.5 rounded-xl bg-[#E2EBD8]/50 border border-[#E2EBD8] text-xs flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Cloud className="w-4 h-4 text-[#3D5438]" />
-                              <div>
-                                <div className="font-bold text-[#3D5438]">Cloud Database Connected</div>
-                                <div className="text-[10px] text-[#737373]">PostgreSQL on Neon Free Tier</div>
-                              </div>
-                            </div>
-                            <button
-                              onClick={handleLogout}
-                              className="px-2 py-1 rounded-md bg-white border border-[#E5E0D8] text-[11px] font-bold text-red-600 hover:bg-red-50"
-                            >
-                              Log Out
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setShowAuthModal(true)}
-                            className="w-full py-2.5 px-3 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white font-bold flex items-center justify-between shadow-xs transition-colors"
-                          >
-                            <span className="flex items-center gap-2">
-                              <Cloud className="w-3.5 h-3.5" />
-                              <span>Sign In / Create Account</span>
-                            </span>
-                            <span>→</span>
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => {
-                            downloadCalendarIcs(subscriptions);
-                            showToast('Exported .ics calendar file.');
-                          }}
-                          className="w-full py-2.5 px-3 rounded-xl bg-[#F5F2EA] hover:bg-[#EFECE4] text-left font-semibold flex items-center justify-between"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-[#3D5438]" />
-                            <span>Export Calendar (.ICS)</span>
-                          </span>
-                          <span>Download</span>
-                        </button>
-                        <button
-                          onClick={() => setIsGmailOpen(true)}
-                          className="w-full py-2.5 px-3 rounded-xl bg-[#F5F2EA] hover:bg-[#EFECE4] text-left font-semibold flex items-center justify-between"
-                        >
-                          <span>Gmail Integration</span>
-                          <span className="text-[#3D5438]">Review</span>
-                        </button>
-                        <button
-                          onClick={() => StorageService.exportJSON(subscriptions)}
-                          className="w-full py-2.5 px-3 rounded-xl bg-[#F5F2EA] hover:bg-[#EFECE4] text-left font-semibold flex items-center justify-between"
-                        >
-                          <span>Export Subscriptions (JSON)</span>
-                          <span>Download</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <PhoneBottomNav activeTab={activeBottomTab} onSelectTab={handleSelectBottomTab} />
-                </>
-              )}
-            </PhoneFrame>
-          </div>
+      {/* Main Responsive Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 md:pb-12">
+        {activeTab === 'dashboard' && (
+          <DashboardTab
+            subscriptions={subscriptions}
+            onSelectSubscription={(sub) => setSelectedSub(sub)}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onAddSubscription={() => {
+              setEditingSub(null);
+              setIsAddEditOpen(true);
+            }}
+            onOpenNotifications={() => setIsNotificationOpen(true)}
+          />
         )}
 
-        {/* ======================================================== */}
-        {/* MODE 2: All 4 Screens Side-by-Side (Exact Reference Match)*/}
-        {/* ======================================================== */}
-        {viewMode === 'all4' && (
-          <div className="max-w-[1600px] mx-auto w-full">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-black text-[#171717] tracking-tight">
-                All 4 Screens Preview (1:1 Reference Match)
-              </h2>
-              <p className="text-xs sm:text-sm text-[#737373] mt-1 max-w-lg mx-auto">
-                Recreated with pixel precision to match your design image. All screens share live dynamic state.
-              </p>
-            </div>
-
-            {/* Side-by-Side Grid matching the 4-phone photograph */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 justify-items-center">
-              {/* Screen 1: Onboarding */}
-              <PhoneFrame title="Screen 1 · Welcome">
-                <Screen1Onboarding
-                  onConnectGmail={() => setIsGmailOpen(true)}
-                  onAddManually={() => setViewMode('phone')}
-                />
-              </PhoneFrame>
-
-              {/* Screen 2: Home */}
-              <PhoneFrame title="Screen 2 · Your subscriptions">
-                <Screen2Home
-                  subscriptions={subscriptions}
-                  totalSpendFormatted={totalSpendFormatted}
-                  nextUpSub={nextUpSub}
-                  onSelectSubscription={handleSelectSubForDetails}
-                  onNavigateTab={handleSelectBottomTab}
-                  onOpenNotifications={() => setIsNotificationOpen(true)}
-                />
-                <PhoneBottomNav
-                  activeTab="home"
-                  onSelectTab={handleSelectBottomTab}
-                />
-              </PhoneFrame>
-
-              {/* Screen 3: Subscriptions / Explore */}
-              <PhoneFrame title="Screen 3 · Subscriptions">
-                <Screen3Subscriptions
-                  subscriptions={subscriptions}
-                  onSelectSubscription={handleSelectSubForDetails}
-                  onBack={() => setViewMode('phone')}
-                />
-                <PhoneBottomNav
-                  activeTab="explore"
-                  onSelectTab={handleSelectBottomTab}
-                />
-              </PhoneFrame>
-
-              {/* Screen 4: Subscription Details */}
-              <PhoneFrame title={`Screen 4 · Details (${selectedSub.providerName})`}>
-                <Screen4Details
-                  subscription={selectedSub}
-                  onBack={() => setViewMode('phone')}
-                  onEdit={(sub) => {
-                    setEditingSub(sub);
-                    setIsAddEditOpen(true);
-                  }}
-                  onOpenCancellation={(sub) => setCancellingSub(sub)}
-                  onToggleReminder={handleToggleReminder}
-                />
-              </PhoneFrame>
-            </div>
-          </div>
+        {activeTab === 'subscriptions' && (
+          <SubscriptionsTab
+            subscriptions={subscriptions}
+            onSelectSubscription={(sub) => setSelectedSub(sub)}
+            onAddSubscription={() => {
+              setEditingSub(null);
+              setIsAddEditOpen(true);
+            }}
+            onOpenCancellation={(sub) => setCancellingSub(sub)}
+            onToggleReminder={handleToggleReminder}
+          />
         )}
 
-        {/* ======================================================== */}
-        {/* MODE 3: Responsive Desktop Dashboard Layout             */}
-        {/* ======================================================== */}
-        {viewMode === 'desktop' && (
-          <div className="max-w-6xl mx-auto w-full space-y-6">
-            {/* Desktop Hero Spend Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-[#F0ECE4] rounded-3xl p-6 border border-[#E5E0D8] shadow-xs">
-                <span className="text-xs text-[#737373] font-bold block mb-1">Total Monthly Spend</span>
-                <span className="text-3xl font-black text-[#171717]">{totalSpendFormatted}</span>
-                <span className="text-xs text-[#3D5438] font-semibold block mt-2">
-                  {subscriptions.filter((s) => s.status === 'active').length} Active Subscriptions
-                </span>
-              </div>
+        {activeTab === 'calendar' && (
+          <CalendarTab
+            subscriptions={subscriptions}
+            onSelectSubscription={(sub) => setSelectedSub(sub)}
+            onOpenCancellation={(sub) => setCancellingSub(sub)}
+            showToast={showToast}
+          />
+        )}
 
-              {nextUpSub && (
-                <div
-                  onClick={() => handleSelectSubForDetails(nextUpSub)}
-                  className="cursor-pointer bg-white hover:bg-[#FAF8F5] rounded-3xl p-6 border border-[#E5E0D8] shadow-xs transition-colors"
-                >
-                  <span className="text-xs text-[#737373] font-bold block mb-1">Next Up Renewal</span>
-                  <div className="flex items-center gap-3">
-                    <BrandIcon providerName={nextUpSub.providerName} size={40} />
-                    <div>
-                      <div className="text-lg font-bold text-[#171717]">{nextUpSub.providerName}</div>
-                      <div className="text-xs text-[#737373]">{nextUpSub.nextRenewalDate} · ₦{nextUpSub.amount.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-white rounded-3xl p-6 border border-[#E5E0D8] shadow-xs flex flex-col justify-between">
-                <div>
-                  <span className="text-xs text-[#737373] font-bold block mb-1">Gmail Detection</span>
-                  <span className="text-sm font-bold text-[#171717] block">Scan for Subscription Receipts</span>
-                </div>
-                <button
-                  onClick={() => setIsGmailOpen(true)}
-                  className="w-full mt-3 py-2.5 px-3 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-xs flex items-center justify-center gap-2"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Connect Gmail</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Desktop Subscriptions Table */}
-            <div className="bg-white rounded-3xl border border-[#E5E0D8] p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#171717]">All Subscriptions</h3>
-                <span className="text-xs text-[#737373]">{subscriptions.length} total entries</span>
-              </div>
-
-              <div className="divide-y divide-[#E5E0D8]">
-                {subscriptions.map((sub) => (
-                  <div
-                    key={sub.id}
-                    onClick={() => handleSelectSubForDetails(sub)}
-                    className="py-3.5 flex items-center justify-between hover:bg-[#FAF8F5] px-2 rounded-xl cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <BrandIcon providerName={sub.providerName} size={40} />
-                      <div>
-                        <div className="text-sm font-bold text-[#171717]">{sub.providerName}</div>
-                        <div className="text-xs text-[#737373]">{sub.notes || sub.planName} · Renews {sub.nextRenewalDate}</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-black text-[#171717]">₦{sub.amount.toLocaleString()}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                          sub.status === 'needs_review'
-                            ? 'bg-[#FDEEE2] text-[#C2671A]'
-                            : 'bg-[#E2EBD8] text-[#3D5438]'
-                        }`}
-                      >
-                        {sub.status === 'needs_review' ? 'Needs Review' : 'Active'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        {activeTab === 'settings' && (
+          <SettingsTab
+            currentUser={currentUser}
+            isAuthenticated={isAuthenticated}
+            subscriptions={subscriptions}
+            onOpenAuth={() => setShowAuthModal(true)}
+            onLogout={handleLogout}
+            onOpenGmail={() => setIsGmailOpen(true)}
+            onOpenNotifications={() => setIsNotificationOpen(true)}
+            onResetDemo={handleResetDemo}
+            showToast={showToast}
+          />
         )}
       </main>
 
-      {/* Shared Modals */}
+      {/* Mobile Fixed Bottom Navigation Bar (md:hidden) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E0D8] px-3 py-2 flex items-center justify-around safe-area-bottom">
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
+            activeTab === 'dashboard' ? 'text-[#3D5438]' : 'text-[#737373]'
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Dashboard</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('subscriptions')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
+            activeTab === 'subscriptions' ? 'text-[#3D5438]' : 'text-[#737373]'
+          }`}
+        >
+          <Grid className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Subscriptions</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('calendar')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
+            activeTab === 'calendar' ? 'text-[#3D5438]' : 'text-[#737373]'
+          }`}
+        >
+          <CalendarIcon className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Calendar</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
+            activeTab === 'settings' ? 'text-[#3D5438]' : 'text-[#737373]'
+          }`}
+        >
+          <SettingsIcon className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Settings</span>
+        </button>
+      </nav>
+
+      {/* Modals & Dialogs */}
+      {/* 1. Subscription Details Modal */}
+      <SubscriptionDetailsModal
+        subscription={selectedSub}
+        isOpen={Boolean(selectedSub)}
+        onClose={() => setSelectedSub(null)}
+        onEdit={(sub) => {
+          setSelectedSub(null);
+          setEditingSub(sub);
+          setIsAddEditOpen(true);
+        }}
+        onDelete={handleDeleteSubscription}
+        onOpenCancellation={(sub) => {
+          setSelectedSub(null);
+          setCancellingSub(sub);
+        }}
+        onToggleReminder={handleToggleReminder}
+      />
+
+      {/* 2. Add / Edit Modal */}
       <AddEditModal
-        subscription={editingSub}
         isOpen={isAddEditOpen}
+        subscription={editingSub}
         onClose={() => {
           setIsAddEditOpen(false);
           setEditingSub(null);
@@ -812,55 +447,65 @@ export const App: React.FC = () => {
         onDelete={handleDeleteSubscription}
       />
 
+      {/* 3. Verified Cancellation Handoff Modal */}
       <CancellationModal
         subscription={cancellingSub}
         onClose={() => setCancellingSub(null)}
-        onConfirmCancelled={handleConfirmCancelled}
-      />
-
-      <GmailOAuthModal
-        isOpen={isGmailOpen}
-        onClose={() => setIsGmailOpen(false)}
-        onImportCandidate={(candidate) => {
-          handleSaveSubscription(candidate);
-          setCurrentScreen('subscriptions');
+        onConfirmCancelled={async (id) => {
+          if (isAuthenticated && id.startsWith('sub_')) {
+            try {
+              await SubscriptionApi.update(id, { status: 'cancelled', remindersEnabled: false });
+            } catch (err) {
+              console.warn('API cancellation update failed', err);
+            }
+          }
+          setSubscriptions((prev) =>
+            prev.map((s) => (s.id === id ? { ...s, status: 'cancelled', remindersEnabled: false } : s))
+          );
+          showToast('Marked subscription as cancelled.');
+          setCancellingSub(null);
         }}
       />
 
-      {/* Auth Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-sm">
-            <button
-              onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 z-10 p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] transition-colors"
-            >
-              ✕
-            </button>
-            <AuthView
-              onAuthenticated={async () => {
-                setIsAuthenticated(true);
-                setShowAuthModal(false);
-                await loadRemoteData();
-                showToast('Signed in successfully!');
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Notification Center Modal */}
+      {/* 4. Notification Center Modal */}
       <NotificationCenterModal
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
         subscriptions={subscriptions}
-        onSelectSubscription={handleSelectSubForDetails}
+        onSelectSubscription={(sub) => {
+          setIsNotificationOpen(false);
+          setSelectedSub(sub);
+        }}
       />
 
-      {/* Toast Notification Banner */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-full bg-[#3D5438] text-white font-bold text-xs shadow-xl animate-in slide-in-from-bottom duration-200">
-          {toastMessage}
+      {/* 5. Gmail OAuth Discovery Modal */}
+      <GmailOAuthModal
+        isOpen={isGmailOpen}
+        onClose={() => setIsGmailOpen(false)}
+        onImportCandidate={(cand) => {
+          setSubscriptions((prev) => [cand, ...prev]);
+          showToast(`Imported ${cand.providerName}.`);
+        }}
+      />
+
+      {/* 6. Auth Modal (Sign In / Register) */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#E5E0D8]">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#F0ECE4] text-[#737373]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <AuthView
+              onAuthenticated={() => {
+                setIsAuthenticated(true);
+                setShowAuthModal(false);
+                loadRemoteData();
+              }}
+            />
+          </div>
         </div>
       )}
     </div>
