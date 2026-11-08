@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+ï»¿import React, { useMemo } from 'react';
 import { Calendar as CalendarIcon, Download, Clock, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Subscription } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
 import { downloadCalendarIcs } from '../services/calendarExportService';
+import { InsightsCalculator } from '../services/insightsCalculator';
 
 interface CalendarTabProps {
   subscriptions: Subscription[];
@@ -23,15 +24,14 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
       .sort((a, b) => a.nextRenewalDate.localeCompare(b.nextRenewalDate));
   }, [subscriptions]);
 
-  // Compute days left
   const getDaysLeft = (dateStr: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(dateStr + 'T00:00:00');
-    return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
   };
 
-  // Group chronologically
   const groups = useMemo(() => {
     const thisWeek: Subscription[] = [];
     const nextWeek: Subscription[] = [];
@@ -52,9 +52,9 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
     });
 
     return [
-      { title: 'Due This Week (&le; 7 Days)', subs: thisWeek, color: 'text-amber-700 bg-amber-50 border-amber-200' },
-      { title: 'Due Next Week (8–14 Days)', subs: nextWeek, color: 'text-[#3D5438] bg-[#E2EBD8]/50 border-[#E2EBD8]' },
-      { title: 'Later This Month (15–30 Days)', subs: thisMonth, color: 'text-[#171717] bg-[#F5F2EA] border-[#E5E0D8]' },
+      { title: 'Due This Week (<= 7 Days)', subs: thisWeek, color: 'text-amber-700 bg-amber-50 border-amber-200' },
+      { title: 'Due Next Week (8-14 Days)', subs: nextWeek, color: 'text-[#3D5438] bg-[#E2EBD8]/50 border-[#E2EBD8]' },
+      { title: 'Later This Month (15-30 Days)', subs: thisMonth, color: 'text-[#171717] bg-[#F5F2EA] border-[#E5E0D8]' },
       { title: 'Future Scheduled Renewals (> 30 Days)', subs: future, color: 'text-[#737373] bg-white border-[#E5E0D8]' },
     ].filter((g) => g.subs.length > 0);
   }, [activeSubs]);
@@ -106,7 +106,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                 </div>
 
                 <div className="text-xs font-bold text-[#171717]">
-                  Total: ?{totalInGroup.toLocaleString()}
+                  Total: {InsightsCalculator.formatCurrency(totalInGroup)}
                 </div>
               </div>
 
@@ -138,7 +138,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                       <div className="flex items-center gap-3">
                         <div className="text-right">
                           <div className="text-sm font-black text-[#171717]">
-                            ?{sub.amount.toLocaleString()}
+                            {InsightsCalculator.formatCurrency(sub.amount, sub.currency)}
                           </div>
                           <span className="text-[10px] text-[#737373] capitalize">
                             /{sub.interval}

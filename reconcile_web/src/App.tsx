@@ -489,15 +489,22 @@ export const App: React.FC = () => {
 
       {/* 6. Auth Modal (Sign In / Register) */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#E5E0D8]">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div 
+            className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#E5E0D8] spring-dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#F0ECE4] text-[#737373]"
+              className="absolute top-5 right-5 p-2 rounded-full hover:bg-[#FAF8F5] text-[#737373] hover:text-[#171717] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             <AuthView
+              onClose={() => setShowAuthModal(false)}
               onAuthenticated={() => {
                 setIsAuthenticated(true);
                 setShowAuthModal(false);

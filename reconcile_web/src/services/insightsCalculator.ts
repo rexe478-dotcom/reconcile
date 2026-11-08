@@ -66,7 +66,7 @@ export class InsightsCalculator {
    * Formats currency with commas (defaults to Nigerian Naira ₦).
    */
   public static formatCurrency(amount: number, currency = 'NGN'): string {
-    const symbol = currency === 'NGN' ? '₦' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£';
+    const symbol = currency === 'NGN' ? '\u20A6' : currency === 'USD' ? '$' : currency === 'EUR' ? '\u20AC' : '\u00A3';
     return `${symbol}${amount.toLocaleString('en-US')}`;
   }
 }

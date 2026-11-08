@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { 
   BarChart2, 
   Calendar, 
@@ -47,13 +47,11 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
     return InsightsCalculator.formatCurrency(insights.totalAnnualNormalized);
   }, [insights]);
 
-  // Earliest renewal
   const nextUpSub = useMemo(() => {
     if (activeSubs.length === 0) return null;
     return [...activeSubs].sort((a, b) => a.nextRenewalDate.localeCompare(b.nextRenewalDate))[0];
   }, [activeSubs]);
 
-  // Subscriptions due in the next 14 days
   const upcomingSoon = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -67,17 +65,17 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       .sort((a, b) => a.nextRenewalDate.localeCompare(b.nextRenewalDate));
   }, [activeSubs]);
 
-  // Compute days left
   const getDaysLeft = (dateStr: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(dateStr + 'T00:00:00');
-    return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
   };
 
   return (
     <div className="space-y-6">
-      {/* Top Welcome & Summary Header */}
+      {/* Top Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#171717] tracking-tight">
@@ -166,7 +164,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                     {nextUpSub.providerName}
                   </div>
                   <div className="text-xs text-[#737373]">
-                    ?{nextUpSub.amount.toLocaleString()} � {nextUpSub.nextRenewalDate}
+                    {InsightsCalculator.formatCurrency(nextUpSub.amount, nextUpSub.currency)} • {nextUpSub.nextRenewalDate}
                   </div>
                 </div>
               </div>
@@ -228,7 +226,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
                   <div className="text-right">
                     <div className="text-sm font-black text-[#171717]">
-                      ?{sub.amount.toLocaleString()}
+                      {InsightsCalculator.formatCurrency(sub.amount, sub.currency)}
                     </div>
                     <span className="text-[10px] text-[#737373] capitalize">
                       /{sub.interval}
@@ -245,7 +243,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         )}
       </div>
 
-      {/* All Subscriptions Preview */}
+      {/* Active Subscriptions Grid */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base sm:text-lg font-black text-[#171717]">
@@ -282,7 +280,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
               <div className="pt-2 border-t border-[#E5E0D8]/60 flex items-center justify-between">
                 <span className="text-sm font-black text-[#171717]">
-                  ?{sub.amount.toLocaleString()}
+                  {InsightsCalculator.formatCurrency(sub.amount, sub.currency)}
                 </span>
                 <span className="text-[11px] text-[#737373]">
                   {sub.nextRenewalDate}

@@ -1,7 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { X, Calendar, Edit3, Trash2, ShieldAlert, Bell, ExternalLink, CheckCircle2, Clock, DollarSign, Tag, Globe } from 'lucide-react';
 import { Subscription } from '../../types/subscription';
 import { BrandIcon } from '../common/BrandIcon';
+import { InsightsCalculator } from '../../services/insightsCalculator';
 
 interface SubscriptionDetailsModalProps {
   subscription: Subscription | null;
@@ -24,17 +25,13 @@ export const SubscriptionDetailsModal: React.FC<SubscriptionDetailsModalProps> =
 }) => {
   if (!isOpen || !subscription) return null;
 
-  // Calculate days remaining until renewal
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const renewalDate = new Date(subscription.nextRenewalDate + 'T00:00:00');
   const diffTime = renewalDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
   const getCountdownBadge = () => {
-    if (diffDays < 0) {
-      return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700">Overdue by {Math.abs(diffDays)}d</span>;
-    }
     if (diffDays === 0) {
       return <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 animate-pulse">Renews Today</span>;
     }
@@ -57,10 +54,10 @@ export const SubscriptionDetailsModal: React.FC<SubscriptionDetailsModalProps> =
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
       <div 
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#E5E0D8] overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#E5E0D8] overflow-hidden flex flex-col max-h-[90vh] spring-dialog"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header with Provider Branding */}
+        {/* Header */}
         <div className="p-6 bg-[#FAF8F5] border-b border-[#E5E0D8] flex items-start justify-between">
           <div className="flex items-center gap-4">
             <BrandIcon providerName={subscription.providerName} size={54} className="shadow-xs" />
@@ -97,7 +94,7 @@ export const SubscriptionDetailsModal: React.FC<SubscriptionDetailsModalProps> =
             <div>
               <span className="text-[11px] font-semibold text-[#737373] uppercase tracking-wider block">Billing Cost</span>
               <div className="text-2xl font-black text-[#171717] mt-0.5">
-                ?{subscription.amount.toLocaleString()}
+                {InsightsCalculator.formatCurrency(subscription.amount, subscription.currency)}
               </div>
               <span className="text-xs text-[#737373] capitalize">
                 Billed every {subscription.intervalCount > 1 ? `${subscription.intervalCount} ` : ''}{subscription.interval}
@@ -148,7 +145,7 @@ export const SubscriptionDetailsModal: React.FC<SubscriptionDetailsModalProps> =
             </div>
           </div>
 
-          {/* Notes (if any) */}
+          {/* Notes */}
           {subscription.notes && (
             <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E5E0D8] text-xs">
               <span className="font-bold text-[#737373] block mb-1">Notes / Plan Details:</span>
@@ -156,7 +153,7 @@ export const SubscriptionDetailsModal: React.FC<SubscriptionDetailsModalProps> =
             </div>
           )}
 
-          {/* Reminder Toggle Quick Action */}
+          {/* Reminder Toggle */}
           <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-[#E5E0D8]">
             <div className="flex items-center gap-2.5">
               <div className={`p-2 rounded-lg ${subscription.remindersEnabled ? 'bg-[#E2EBD8] text-[#3D5438]' : 'bg-gray-100 text-gray-400'}`}>

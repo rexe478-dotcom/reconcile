@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { 
   Search, 
   Grid, 
@@ -31,28 +31,24 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
   onToggleReminder,
 }) => {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'soon' | 'cancelled' | 'review'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'soon' | 'cancelled'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [sortBy, setSortBy] = useState<'date' | 'amount_desc' | 'amount_asc' | 'name'>('date');
 
-  // Compute days left
   const getDaysLeft = (dateStr: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(dateStr + 'T00:00:00');
-    return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
   };
 
   const filteredSubscriptions = useMemo(() => {
     let result = [...subscriptions];
 
-    // Status filter
     if (statusFilter === 'active') {
       result = result.filter((s) => s.status === 'active');
     } else if (statusFilter === 'cancelled') {
       result = result.filter((s) => s.status === 'cancelled');
-    } else if (statusFilter === 'review') {
-      result = result.filter((s) => s.status === 'needs_review');
     } else if (statusFilter === 'soon') {
       result = result.filter((s) => {
         const days = getDaysLeft(s.nextRenewalDate);
@@ -60,7 +56,6 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
       });
     }
 
-    // Search query
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((s) => 
@@ -71,25 +66,9 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
       );
     }
 
-    // Sorting
-    result.sort((a, b) => {
-      if (sortBy === 'date') {
-        return a.nextRenewalDate.localeCompare(b.nextRenewalDate);
-      }
-      if (sortBy === 'amount_desc') {
-        return b.amount - a.amount;
-      }
-      if (sortBy === 'amount_asc') {
-        return a.amount - b.amount;
-      }
-      if (sortBy === 'name') {
-        return a.providerName.localeCompare(b.providerName);
-      }
-      return 0;
-    });
-
+    result.sort((a, b) => a.nextRenewalDate.localeCompare(b.nextRenewalDate));
     return result;
-  }, [subscriptions, statusFilter, search, sortBy]);
+  }, [subscriptions, statusFilter, search]);
 
   return (
     <div className="space-y-5">
@@ -113,7 +92,7 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
         </button>
       </div>
 
-      {/* Search, Filter & View Controls */}
+      {/* Search & Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-[#E5E0D8]">
         {/* Search Input */}
         <div className="relative flex-1">
@@ -198,7 +177,7 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
         </div>
       </div>
 
-      {/* Subscriptions Grid View */}
+      {/* Grid View */}
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredSubscriptions.map((sub) => {
@@ -239,7 +218,7 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
                   <div>
                     <span className="text-[10px] text-[#737373] uppercase font-bold tracking-wider block">Price</span>
                     <div className="text-lg font-black text-[#171717]">
-                      ?{sub.amount.toLocaleString()}
+                      {'\u20A6'}{sub.amount.toLocaleString()}
                     </div>
                     <span className="text-[10px] text-[#737373] capitalize">
                       /{sub.interval}
@@ -272,7 +251,6 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
                         ? 'bg-[#E2EBD8]/60 text-[#3D5438] border-[#E2EBD8]'
                         : 'bg-gray-50 text-gray-400 border-gray-200 hover:text-gray-600'
                     }`}
-                    title={sub.remindersEnabled ? 'Reminders active' : 'Reminders muted'}
                   >
                     <Bell className="w-3.5 h-3.5" />
                     <span className="text-[11px] font-bold">
@@ -298,7 +276,7 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
         </div>
       )}
 
-      {/* Subscriptions Table / List View */}
+      {/* Table View */}
       {viewMode === 'table' && (
         <div className="bg-white rounded-3xl border border-[#E5E0D8] overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
@@ -336,7 +314,7 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
                       </td>
 
                       <td className="py-3.5 px-4 font-bold text-sm text-[#171717]">
-                        ?{sub.amount.toLocaleString()}
+                        {'\u20A6'}{sub.amount.toLocaleString()}
                       </td>
 
                       <td className="py-3.5 px-4">

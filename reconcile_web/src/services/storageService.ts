@@ -1,6 +1,12 @@
 import { Subscription } from '../types/subscription';
 
-const STORAGE_KEY = 'reconcile_subscriptions_v1';
+const STORAGE_KEY = 'reconcile_subscriptions_v2';
+
+function getDateRelative(daysOffset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  return d.toISOString().split('T')[0];
+}
 
 export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
   {
@@ -11,8 +17,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     currency: 'NGN',
     interval: 'month',
     intervalCount: 1,
-    nextRenewalDate: '2025-04-28',
-    anchorDay: 28,
+    nextRenewalDate: getDateRelative(3),
+    anchorDay: new Date(getDateRelative(3)).getDate(),
     category: 'Entertainment',
     provenance: 'gmail',
     status: 'active',
@@ -20,8 +26,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     reminderDaysBefore: [1, 3],
     cancellationUrl: 'https://www.netflix.com/youraccount',
     notes: 'Family streaming profile.',
-    createdAt: '2025-01-28T10:00:00Z',
-    updatedAt: '2025-04-01T10:00:00Z',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'sub-spotify',
@@ -31,8 +37,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     currency: 'NGN',
     interval: 'month',
     intervalCount: 1,
-    nextRenewalDate: '2025-04-30',
-    anchorDay: 30,
+    nextRenewalDate: getDateRelative(7),
+    anchorDay: new Date(getDateRelative(7)).getDate(),
     category: 'Entertainment',
     provenance: 'gmail',
     status: 'active',
@@ -40,8 +46,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     reminderDaysBefore: [1],
     cancellationUrl: 'https://www.spotify.com/account/overview/',
     notes: 'Music. Podcasts. More.',
-    createdAt: '2025-01-30T10:00:00Z',
-    updatedAt: '2025-04-01T10:00:00Z',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'sub-adobe',
@@ -51,8 +57,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     currency: 'NGN',
     interval: 'month',
     intervalCount: 1,
-    nextRenewalDate: '2025-05-02',
-    anchorDay: 2,
+    nextRenewalDate: getDateRelative(12),
+    anchorDay: new Date(getDateRelative(12)).getDate(),
     category: 'Productivity',
     provenance: 'gmail',
     status: 'needs_review',
@@ -60,8 +66,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     reminderDaysBefore: [7, 3, 1],
     cancellationUrl: 'https://account.adobe.com/plans',
     notes: 'Photoshop, Illustrator, Premiere annual subscription.',
-    createdAt: '2025-01-02T10:00:00Z',
-    updatedAt: '2025-04-01T10:00:00Z',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'sub-googleone',
@@ -71,8 +77,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     currency: 'NGN',
     interval: 'month',
     intervalCount: 1,
-    nextRenewalDate: '2025-05-12',
-    anchorDay: 12,
+    nextRenewalDate: getDateRelative(18),
+    anchorDay: new Date(getDateRelative(18)).getDate(),
     category: 'Cloud',
     provenance: 'manual',
     status: 'active',
@@ -80,8 +86,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     reminderDaysBefore: [1],
     cancellationUrl: 'https://one.google.com/settings',
     notes: 'Drive and Gmail expanded storage.',
-    createdAt: '2025-01-12T10:00:00Z',
-    updatedAt: '2025-04-01T10:00:00Z',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'sub-notion',
@@ -91,8 +97,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     currency: 'NGN',
     interval: 'month',
     intervalCount: 1,
-    nextRenewalDate: '2025-05-05',
-    anchorDay: 5,
+    nextRenewalDate: getDateRelative(22),
+    anchorDay: new Date(getDateRelative(22)).getDate(),
     category: 'Productivity',
     provenance: 'manual',
     status: 'active',
@@ -100,8 +106,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     reminderDaysBefore: [1],
     cancellationUrl: 'https://www.notion.so/settings',
     notes: 'Notes, docs, and knowledgebase.',
-    createdAt: '2025-01-05T10:00:00Z',
-    updatedAt: '2025-04-01T10:00:00Z',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'sub-youtube',
@@ -111,8 +117,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     currency: 'NGN',
     interval: 'month',
     intervalCount: 1,
-    nextRenewalDate: '2025-05-10',
-    anchorDay: 10,
+    nextRenewalDate: getDateRelative(26),
+    anchorDay: new Date(getDateRelative(26)).getDate(),
     category: 'Entertainment',
     provenance: 'manual',
     status: 'active',
@@ -120,8 +126,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     reminderDaysBefore: [1],
     cancellationUrl: 'https://www.youtube.com/paid_memberships',
     notes: 'Ad-free streaming and YouTube Music.',
-    createdAt: '2025-01-10T10:00:00Z',
-    updatedAt: '2025-04-01T10:00:00Z',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'sub-chatgpt',
@@ -131,8 +137,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     currency: 'NGN',
     interval: 'month',
     intervalCount: 1,
-    nextRenewalDate: '2026-12-05',
-    anchorDay: 5,
+    nextRenewalDate: getDateRelative(31),
+    anchorDay: new Date(getDateRelative(31)).getDate(),
     category: 'Productivity',
     provenance: 'manual',
     status: 'active',
@@ -140,8 +146,8 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
     reminderDaysBefore: [1, 3],
     cancellationUrl: 'https://chatgpt.com/#settings/Subscription',
     notes: 'GPT-4o and advanced data analysis.',
-    createdAt: '2026-06-05T10:00:00Z',
-    updatedAt: '2026-11-05T10:00:00Z',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -149,11 +155,30 @@ export class StorageService {
   public static loadSubscriptions(): Subscription[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
+      let list: Subscription[] = [];
       if (!data) {
-        this.saveSubscriptions(INITIAL_SUBSCRIPTIONS);
-        return INITIAL_SUBSCRIPTIONS;
+        list = INITIAL_SUBSCRIPTIONS;
+        this.saveSubscriptions(list);
+      } else {
+        list = JSON.parse(data) as Subscription[];
       }
-      return JSON.parse(data) as Subscription[];
+
+      // Auto-advance any past dates so they are always current and positive
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
+
+      return list.map((sub) => {
+        if (!sub.nextRenewalDate || sub.nextRenewalDate < todayStr) {
+          const nextDate = new Date();
+          nextDate.setDate(nextDate.getDate() + 5);
+          return {
+            ...sub,
+            nextRenewalDate: nextDate.toISOString().split('T')[0],
+          };
+        }
+        return sub;
+      });
     } catch (e) {
       console.error('Failed to load subscriptions from localStorage, fallback to demo data', e);
       return INITIAL_SUBSCRIPTIONS;
@@ -174,13 +199,12 @@ export class StorageService {
   }
 
   public static exportJSON(subs: Subscription[]): void {
-    const jsonStr = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), subscriptions: subs }, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `reconcile_subscriptions_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(subs, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `reconcile_subscriptions_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
   }
 }
