@@ -1,0 +1,15 @@
+# Release checklist
+- [ ] App launches on supported devices.
+- [ ] Repository audit and architecture notes complete.
+- [ ] Renewal unit tests pass.
+- [ ] Editing one subscription never affects another.
+- [ ] Month-end, leap-year, time-zone cases tested.
+- [ ] Calendar opens correct subscription.
+- [ ] Notification permission/rescheduling tested.
+- [ ] Cancellation handoff never claims automatic cancellation.
+- [ ] Only verified official URLs enabled.
+- [ ] Gmail optional and consent-based.
+- [ ] Privacy, deletion, token security reviewed.
+- [ ] Loading/empty/offline/error states implemented.
+- [ ] Phone/tablet layouts reviewed.
+- [ ] No secrets committed; build/deployment docs verified.

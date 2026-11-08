@@ -1,0 +1,2 @@
+# Frontend architecture
+Preferred: Flutter/Dart, Riverpod, GoRouter. If repo already has a healthy framework, preserve it and document why. Layers: presentation (screens/widgets/providers), domain (entities/value objects/use cases/recurrence), data (repositories/storage/API/DTOs), integrations (notifications/OAuth/URL launcher). UI contains no recurrence logic. Use timezone-aware values, explicit async states, accessible labels, and no hardcoded secrets.

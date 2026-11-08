@@ -1,0 +1,2 @@
+# Backend architecture
+Preferred: FastAPI, PostgreSQL, SQLAlchemy, Alembic; preserve a sound existing stack. Responsibilities: authenticated user data, subscription CRUD, validated schedule data, optional Gmail integration, provider registry metadata, export/deletion. Enforce ownership on every query, validate payloads, rate-limit sensitive endpoints, use HTTPS, keep secrets in environment/secret manager, and never log tokens or unnecessary email content.

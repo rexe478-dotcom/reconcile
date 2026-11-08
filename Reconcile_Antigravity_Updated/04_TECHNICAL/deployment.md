@@ -1,0 +1,2 @@
+# Deployment
+Provide `.env.example` with placeholder names only. Production: app build pipeline, FastAPI over HTTPS, managed PostgreSQL/backups/migrations, error monitoring with sensitive-data scrubbing, secure OAuth redirects, environment-specific provider allowlists. Document build, migration, health check, rollback, backup/restore, and secret rotation. Do not deploy before auth, ownership, privacy, and tests pass.

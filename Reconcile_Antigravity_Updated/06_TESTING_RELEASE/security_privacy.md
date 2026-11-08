@@ -1,0 +1,2 @@
+# Security and privacy
+Collect minimum data. Enforce authenticated ownership server-side. Never store provider passwords or request Gmail passwords. Encrypt OAuth tokens and restrict access. Keep secrets out of source control. Require HTTPS. Allowlist provider URLs and validate redirects. Scrub logs. Provide export/deletion where accounts exist. Document retention. Never imply bank/payment verification where none exists.

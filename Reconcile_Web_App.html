@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reconcile - Know What Renews Next</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: '#FAF8F5',
+            surface: {
+              DEFAULT: '#FFFFFF',
+              subtle: '#F5F2EA',
+              card: '#F0ECE4',
+              hover: '#EAE5DB',
+            },
+            border: {
+              DEFAULT: '#E8E3DA',
+              subtle: '#EDE8DF',
+            },
+            accent: {
+              DEFAULT: '#3D5438',
+              hover: '#32462E',
+              surface: '#E2EBD8',
+              light: '#D6E2CE',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FAF8F5;
+      color: #171717;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      margin: 0;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #FAF8F5; }
+    ::-webkit-scrollbar-thumb { background: #D8D2C6; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #C4BCAD; }
+  </style>
+</head>
+<body class="bg-[#FAF8F5] text-[#171717] selection:bg-[#E2EBD8] selection:text-[#3D5438] antialiased">
+  <div id="app" class="min-h-screen flex flex-col">
+    <!-- Rendered dynamically by JavaScript -->
+  </div>
+
+  <script>
+    // --- Initial Reference Seed Data ---
+    const INITIAL_SUBSCRIPTIONS = [
+      {
+        id: 'sub-netflix',
+        providerName: 'Netflix',
+        planName: 'Standard HD Plan',
+        amount: 7500,
+        currency: 'NGN',
+        interval: 'month',
+        nextRenewalDate: '2025-04-28',
+        anchorDay: 28,
+        category: 'Entertainment',
+        provenance: 'gmail',
+        status: 'active',
+        remindersEnabled: true,
+        cancellationUrl: 'https://www.netflix.com/youraccount',
+        notes: 'Family streaming profile.'
+      },
+      {
+        id: 'sub-spotify',
+        providerName: 'Spotify',
+        planName: 'Individual Premium',
+        amount: 2500,
+        currency: 'NGN',
+        interval: 'month',
+        nextRenewalDate: '2025-04-30',
+        anchorDay: 30,
+        category: 'Entertainment',
+        provenance: 'gmail',
+        status: 'active',
+        remindersEnabled: true,
+        cancellationUrl: 'https://www.spotify.com/account/overview/',
+        notes: 'Music. Podcasts. More.'
+      },
+      {
+        id: 'sub-adobe',
+        providerName: 'Adobe',
+        planName: 'Creative Cloud Suite',
+        amount: 14000,
+        currency: 'NGN',
+        interval: 'month',
+        nextRenewalDate: '2025-05-02',
+        anchorDay: 2,
+        category: 'Productivity',
+        provenance: 'gmail',
+        status: 'needs_review',
+        remindersEnabled: true,
+        cancellationUrl: 'https://account.adobe.com/plans',
+        notes: 'Photoshop, Illustrator, Premiere annual subscription.'
+      },
+      {
+        id: 'sub-googleone',
+        providerName: 'Google One',
+        planName: '100 GB Cloud Storage',
+        amount: 500,
+        currency: 'NGN',
+        interval: 'month',
+        nextRenewalDate: '2025-05-12',
+        anchorDay: 12,
+        category: 'Cloud',
+        provenance: 'manual',
+        status: 'active',
+        remindersEnabled: true,
+        cancellationUrl: 'https://one.google.com/settings',
+        notes: 'Drive and Gmail expanded storage.'
+      },
+      {
+        id: 'sub-notion',
+        providerName: 'Notion',
+        planName: 'Team Workspace',
+        amount: 4000,
+        currency: 'NGN',
+        interval: 'month',
+        nextRenewalDate: '2025-05-05',
+        anchorDay: 5,
+        category: 'Productivity',
+        provenance: 'manual',
+        status: 'active',
+        remindersEnabled: true,
+        cancellationUrl: 'https://www.notion.so/settings',
+        notes: 'Notes, docs, and knowledgebase.'
+      },
+      {
+        id: 'sub-youtube',
+        providerName: 'YouTube Premium',
+        planName: 'Individual Ad-free',
+        amount: 1100,
+        currency: 'NGN',
+        interval: 'month',
+        nextRenewalDate: '2025-05-10',
+        anchorDay: 10,
+        category: 'Entertainment',
+        provenance: 'manual',
+        status: 'active',
+        remindersEnabled: true,
+        cancellationUrl: 'https://www.youtube.com/paid_memberships',
+        notes: 'Ad-free streaming and YouTube Music.'
+      }
+    ];
+
+    // State Variables
+    let subscriptions = loadSubscriptions();
+    let viewMode = 'phone'; // 'phone' | 'all4' | 'desktop'
+    let currentScreen = 'home'; // 'onboarding' | 'home' | 'subscriptions' | 'details'
+    let activeBottomTab = 'home'; // 'home' | 'explore' | 'saved' | 'profile'
+    let selectedSubId = 'sub-spotify';
+    let searchQuery = '';
+    let categoryFilter = 'all'; // 'all' | 'upcoming' | 'needs_review'
+    let isAddEditOpen = false;
+    let editingSub = null;
+    let isCancelOpen = false;
+    let cancellingSub = null;
+    let isGmailOpen = false;
+    let toastMessage = null;
+
+    function loadSubscriptions() {
+      try {
+        const saved = localStorage.getItem('reconcile_subscriptions_v2');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return [...INITIAL_SUBSCRIPTIONS];
+    }
+
+    function saveSubscriptions() {
+      try {
+        localStorage.setItem('reconcile_subscriptions_v2', JSON.stringify(subscriptions));
+      } catch (e) {}
+    }
+
+    function showToast(msg) {
+      toastMessage = msg;
+      render();
+      setTimeout(() => {
+        toastMessage = null;
+        render();
+      }, 2500);
+    }
+
+    function getSelectedSubscription() {
+      return subscriptions.find(s => s.id === selectedSubId) || subscriptions[0];
+    }
+
+    function calculateTotalMonthlySpend() {
+      const active = subscriptions.filter(s => s.status !== 'cancelled');
+      let total = 0;
+      for (const s of active) {
+        if (s.interval === 'year') total += s.amount / 12;
+        else if (s.interval === 'week') total += (s.amount * 52) / 12;
+        else total += s.amount;
+      }
+      return Math.round(total);
+    }
+
+    // --- Brand Icon Renderer Helper ---
+    function renderBrandIcon(name, size = 36) {
+      const n = (name || '').toLowerCase();
+      if (n.includes('spotify')) {
+        return `<div style="width:${size}px; height:${size}px" class="rounded-full bg-[#1ED760] flex items-center justify-center text-black shrink-0 shadow-sm">
+          <svg style="width:${size*0.6}px; height:${size*0.6}px" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+          </svg>
+        </div>`;
+      }
+      if (n.includes('netflix')) {
+        return `<div style="width:${size}px; height:${size}px" class="rounded-xl bg-black flex items-center justify-center shrink-0 shadow-sm">
+          <span class="text-[#E50914] font-black" style="font-size:${size*0.55}px">N</span>
+        </div>`;
+      }
+      if (n.includes('adobe')) {
+        return `<div style="width:${size}px; height:${size}px" class="rounded-xl bg-[#FA0F00] flex items-center justify-center text-white shrink-0 shadow-sm">
+          <svg style="width:${size*0.55}px; height:${size*0.55}px" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.96 4h4.48L24 20h-4.48l-2.78-7.05h-3.48L13.96 4zM10.04 4H5.56L0 20h4.48l2.78-7.05h3.48L10.04 4zM12 9.07l2.25 5.73h-4.5L12 9.07z" />
+          </svg>
+        </div>`;
+      }
+      if (n.includes('notion')) {
+        return `<div style="width:${size}px; height:${size}px" class="rounded-xl bg-white border border-[#E5E0D8] flex items-center justify-center text-black font-black font-serif shrink-0 shadow-sm">
+          <span style="font-size:${size*0.55}px">N</span>
+        </div>`;
+      }
+      if (n.includes('youtube')) {
+        return `<div style="width:${size}px; height:${size}px" class="rounded-xl bg-[#FF0000] flex items-center justify-center text-white shrink-0 shadow-sm">
+          <svg style="width:${size*0.55}px; height:${size*0.55}px" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 22c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73z" />
+          </svg>
+        </div>`;
+      }
+      if (n.includes('google') || n.includes('drive')) {
+        return `<div style="width:${size}px; height:${size}px" class="rounded-xl bg-white border border-[#E5E0D8] flex items-center justify-center text-[#4285F4] font-black shrink-0 shadow-sm">
+          <span style="font-size:${size*0.55}px">1</span>
+        </div>`;
+      }
+      return `<div style="width:${size}px; height:${size}px" class="rounded-xl bg-[#F0ECE4] border border-[#E5E0D8] flex items-center justify-center text-[#3D5438] font-bold text-sm shrink-0">
+        ${(name || 'S').charAt(0).toUpperCase()}
+      </div>`;
+    }
+
+    // --- Phone Frame Wrapper ---
+    function wrapPhoneFrame(contentHtml, title = '') {
+      return `
+        <div class="flex flex-col items-center">
+          ${title ? `<span class="text-xs font-bold text-[#737373] uppercase tracking-wider mb-2">${title}</span>` : ''}
+          <div class="relative w-[340px] sm:w-[360px] h-[720px] bg-[#FAF8F5] text-[#171717] rounded-[48px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border-[8px] border-[#1C1F1E] flex flex-col overflow-hidden ring-1 ring-black/5">
+            <!-- Top Status Bar -->
+            <div class="pt-3 px-6 pb-1 flex items-center justify-between text-xs font-semibold text-[#171717] select-none shrink-0 z-20">
+              <span class="font-semibold text-[13px] tracking-tight">9:41</span>
+              <div class="w-4 h-4 rounded-full bg-[#1C1F1E] mx-auto shadow-inner"></div>
+              <div class="flex items-center gap-1.5 text-[#171717]">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg>
+              </div>
+            </div>
+
+            <!-- Screen Body -->
+            <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col relative select-text">
+              ${contentHtml}
+            </div>
+
+            <!-- Bottom Home Indicator Bar -->
+            <div class="py-2 flex justify-center shrink-0 bg-transparent z-20">
+              <div class="w-32 h-1 bg-[#171717]/40 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Bottom Navigation Component ---
+    function renderBottomNav(activeTab = 'home') {
+      return `
+        <div class="bg-white border-t border-[#E5E0D8] px-4 py-1.5 flex items-center justify-around shrink-0 z-10">
+          <button onclick="handleBottomTabChange('home')" class="flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${activeTab === 'home' ? 'text-[#3D5438]' : 'text-[#737373] hover:text-[#171717]'}">
+            <svg class="w-5 h-5 ${activeTab === 'home' ? 'stroke-[2.5]' : 'stroke-[1.8]'}" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span class="text-[10px] font-semibold tracking-tight">Home</span>
+          </button>
+          <button onclick="handleBottomTabChange('explore')" class="flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${activeTab === 'explore' ? 'text-[#3D5438]' : 'text-[#737373] hover:text-[#171717]'}">
+            <svg class="w-5 h-5 ${activeTab === 'explore' ? 'stroke-[2.5]' : 'stroke-[1.8]'}" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+            <span class="text-[10px] font-semibold tracking-tight">Explore</span>
+          </button>
+          <button onclick="handleBottomTabChange('saved')" class="flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${activeTab === 'saved' ? 'text-[#3D5438]' : 'text-[#737373] hover:text-[#171717]'}">
+            <svg class="w-5 h-5 ${activeTab === 'saved' ? 'stroke-[2.5]' : 'stroke-[1.8]'}" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            <span class="text-[10px] font-semibold tracking-tight">Saved</span>
+          </button>
+          <button onclick="handleBottomTabChange('profile')" class="flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${activeTab === 'profile' ? 'text-[#3D5438]' : 'text-[#737373] hover:text-[#171717]'}">
+            <svg class="w-5 h-5 ${activeTab === 'profile' ? 'stroke-[2.5]' : 'stroke-[1.8]'}" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="text-[10px] font-semibold tracking-tight">Profile</span>
+          </button>
+        </div>
+      `;
+    }
+
+    // --- Screen 1: Onboarding View ---
+    function renderScreen1() {
+      return `
+        <div class="flex-1 flex flex-col justify-between px-6 py-4 text-center bg-[#FAF8F5]">
+          <!-- Brand Header -->
+          <div class="flex items-center justify-center gap-2 pt-2">
+            <div class="w-7 h-7 rounded-lg bg-[#3D5438] flex items-center justify-center text-white font-black text-sm shadow-sm">
+              R
+            </div>
+            <span class="font-extrabold tracking-[0.2em] text-xs text-[#171717]">
+              RECONCILE
+            </span>
+          </div>
+
+          <!-- Hero Headline & Graphic -->
+          <div class="space-y-3 my-auto pt-2">
+            <h1 class="text-[28px] sm:text-[32px] font-black text-[#171717] tracking-tight leading-[1.15]">
+              Know what<br />renews next.
+            </h1>
+            <p class="text-xs sm:text-[13px] text-[#737373] leading-relaxed max-w-[260px] mx-auto font-medium">
+              Track your subscriptions, get timely reminders, and never pay for what you don't use.
+            </p>
+
+            <div class="py-4 flex justify-center">
+              <div class="relative w-36 h-36">
+                <!-- Burst rays -->
+                <svg class="absolute -right-3 -top-1 w-16 h-16 pointer-events-none text-[#737373]/40" viewBox="0 0 40 40">
+                  <line x1="20" y1="6" x2="20" y2="0" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <line x1="28" y1="10" x2="34" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <line x1="32" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+
+                <div class="w-28 h-28 mx-auto mt-2 bg-white rounded-2xl border-2 border-[#E5E0D8] shadow-sm flex flex-col overflow-hidden relative">
+                  <div class="h-6 bg-[#EFECE4] border-b border-[#E5E0D8] flex items-center justify-around px-2">
+                    <div class="w-2 h-3 rounded-full bg-[#3D5438]/80 -mt-2"></div>
+                    <div class="w-2 h-3 rounded-full bg-[#3D5438]/80 -mt-2"></div>
+                    <div class="w-2 h-3 rounded-full bg-[#3D5438]/80 -mt-2"></div>
+                    <div class="w-2 h-3 rounded-full bg-[#3D5438]/80 -mt-2"></div>
+                  </div>
+                  <div class="p-2.5 grid grid-cols-4 gap-1.5 opacity-40">
+                    <div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div>
+                    <div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div>
+                    <div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div><div class="w-2 h-2 rounded-sm bg-[#3D5438]"></div>
+                  </div>
+                </div>
+
+                <div class="absolute right-3 bottom-2 w-12 h-12 rounded-full bg-[#3D5438] text-white flex items-center justify-center font-black text-lg shadow-md border-2 border-[#FAF8F5]">
+                  <span class="font-serif">L</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons & Shield -->
+          <div class="space-y-3 pb-2">
+            <button onclick="openGmailModal()" class="w-full py-3.5 px-4 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-sm flex items-center justify-center gap-2.5 shadow-sm active:scale-[0.98] transition-all">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.5l8.073-6.007c1.618-1.214 3.927-.059 3.927 1.964z" /></svg>
+              <span>Connect Gmail</span>
+            </button>
+
+            <button onclick="navigateToScreen('home')" class="w-full py-3.5 px-4 rounded-full bg-white hover:bg-[#F5F2EA] border border-[#D8D2C6] text-[#171717] font-bold text-sm active:scale-[0.98] transition-all shadow-xs">
+              Add subscriptions manually
+            </button>
+
+            <div class="flex items-center justify-center gap-1.5 text-[10px] text-[#737373] max-w-[260px] mx-auto pt-1">
+              <svg class="w-3.5 h-3.5 shrink-0 text-[#737373]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>We only scan relevant subscription and payment emails after permission.</span>
+            </div>
+
+            <div class="flex items-center justify-center gap-1.5 pt-2">
+              <div class="w-2 h-2 rounded-full bg-[#3D5438]"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-[#D8D2C6]"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-[#D8D2C6]"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Screen 2: Home View ---
+    function renderScreen2() {
+      const totalSpend = calculateTotalMonthlySpend();
+      const netflix = subscriptions.find(s => s.providerName.toLowerCase().includes('netflix')) || subscriptions[0];
+      const spotify = subscriptions.find(s => s.providerName.toLowerCase().includes('spotify')) || subscriptions[1];
+      const adobe = subscriptions.find(s => s.providerName.toLowerCase().includes('adobe')) || subscriptions[2];
+      const notion = subscriptions.find(s => s.providerName.toLowerCase().includes('notion')) || subscriptions[3];
+
+      return `
+        <div class="flex-1 flex flex-col justify-between bg-[#FAF8F5] text-[#171717]">
+          <div class="flex-1 overflow-y-auto px-5 pt-2 pb-4 space-y-4">
+            <!-- Top Header Bar -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded bg-[#3D5438] flex items-center justify-center text-white font-black text-xs">
+                  R
+                </div>
+                <span class="font-extrabold tracking-[0.2em] text-xs text-[#171717]">
+                  RECONCILE
+                </span>
+              </div>
+              <button onclick="showToast('All notifications are up to date.')" class="relative p-1.5 rounded-full hover:bg-[#EFECE4] transition-colors">
+                <svg class="w-5 h-5 text-[#171717]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EA4335]"></span>
+              </button>
+            </div>
+
+            <div>
+              <h2 class="text-xl font-bold tracking-tight text-[#171717]">
+                Your subscriptions
+              </h2>
+            </div>
+
+            <!-- Spend Card -->
+            <div class="bg-[#F0ECE4] rounded-2xl p-4 flex items-center justify-between border border-[#E5E0D8]/60 shadow-xs">
+              <div>
+                <div class="text-2xl font-black text-[#171717] tracking-tight">
+                  ₦${totalSpend.toLocaleString()}
+                </div>
+                <div class="text-xs text-[#737373] font-medium mt-0.5">
+                  Total monthly spend
+                </div>
+              </div>
+              <div class="text-[#3D5438] p-1.5">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+              </div>
+            </div>
+
+            <!-- Next Up Card -->
+            <div onclick="selectSubscriptionAndGoDetails('${netflix.id}')" class="cursor-pointer bg-[#F5F2EA] hover:bg-[#EFECE4] active:scale-[0.99] transition-all rounded-2xl p-3.5 flex items-center justify-between border border-[#E5E0D8]/60">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-white border border-[#D8D2C6] flex items-center justify-center text-[#3D5438]">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div>
+                  <span class="text-[11px] text-[#737373] block font-medium">Next up</span>
+                  <span class="text-sm font-bold text-[#171717] block leading-snug">${netflix.providerName}</span>
+                  <span class="text-xs text-[#737373]">${netflix.nextRenewalDate} · ₦${netflix.amount.toLocaleString()}</span>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-[#737373]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+
+            <!-- Upcoming this week -->
+            <div class="space-y-2 pt-1">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-[#171717]">Upcoming this week</h3>
+                <button onclick="navigateToScreen('subscriptions')" class="text-xs text-[#737373] hover:text-[#3D5438] font-medium flex items-center gap-0.5">
+                  <span>See all</span>
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+              </div>
+
+              <div class="space-y-1.5">
+                <div onclick="selectSubscriptionAndGoDetails('${netflix.id}')" class="cursor-pointer bg-white hover:bg-[#FAF8F5] p-3 rounded-2xl border border-[#E5E0D8]/70 flex items-center justify-between shadow-xs transition-colors">
+                  <div class="flex items-center gap-3">
+                    ${renderBrandIcon('Netflix', 36)}
+                    <div>
+                      <h4 class="text-sm font-bold text-[#171717]">Netflix</h4>
+                      <span class="text-xs text-[#737373]">Apr 28, 2025</span>
+                    </div>
+                  </div>
+                  <div class="text-sm font-bold text-[#171717]">₦7,500</div>
+                </div>
+
+                <div onclick="selectSubscriptionAndGoDetails('${spotify.id}')" class="cursor-pointer bg-white hover:bg-[#FAF8F5] p-3 rounded-2xl border border-[#E5E0D8]/70 flex items-center justify-between shadow-xs transition-colors">
+                  <div class="flex items-center gap-3">
+                    ${renderBrandIcon('Spotify', 36)}
+                    <div>
+                      <h4 class="text-sm font-bold text-[#171717]">Spotify</h4>
+                      <span class="text-xs text-[#737373]">Apr 30, 2025</span>
+                    </div>
+                  </div>
+                  <div class="text-sm font-bold text-[#171717]">₦2,500</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- All subscriptions -->
+            <div class="space-y-2 pt-1">
+              <h3 class="text-sm font-bold text-[#171717]">All subscriptions</h3>
+              <div class="space-y-1.5">
+                <div onclick="selectSubscriptionAndGoDetails('${adobe.id}')" class="cursor-pointer bg-white hover:bg-[#FAF8F5] p-3 rounded-2xl border border-[#E5E0D8]/70 flex items-center justify-between shadow-xs transition-colors">
+                  <div class="flex items-center gap-3">
+                    ${renderBrandIcon('Adobe', 36)}
+                    <div>
+                      <h4 class="text-sm font-bold text-[#171717]">Adobe</h4>
+                      <span class="text-xs text-[#737373]">May 2, 2025</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-[#171717]">₦14,000</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E2EBD8] text-[#3D5438]">Active</span>
+                  </div>
+                </div>
+
+                <div onclick="selectSubscriptionAndGoDetails('${notion.id}')" class="cursor-pointer bg-white hover:bg-[#FAF8F5] p-3 rounded-2xl border border-[#E5E0D8]/70 flex items-center justify-between shadow-xs transition-colors">
+                  <div class="flex items-center gap-3">
+                    ${renderBrandIcon('Notion', 36)}
+                    <div>
+                      <h4 class="text-sm font-bold text-[#171717]">Notion</h4>
+                      <span class="text-xs text-[#737373]">May 5, 2025</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-[#171717]">₦4,000</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E2EBD8] text-[#3D5438]">Active</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          ${renderBottomNav('home')}
+        </div>
+      `;
+    }
+
+    // --- Screen 3: Subscriptions View ---
+    function renderScreen3() {
+      const filtered = subscriptions.filter(sub => {
+        if (categoryFilter === 'needs_review' && sub.status !== 'needs_review') return false;
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          return sub.providerName.toLowerCase().includes(q) || sub.planName.toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      return `
+        <div class="flex-1 flex flex-col justify-between bg-[#FAF8F5] text-[#171717]">
+          <div class="flex-1 overflow-y-auto px-5 pt-2 pb-4 space-y-3.5">
+            <!-- Header Bar -->
+            <div class="flex items-center justify-between">
+              <button onclick="navigateToScreen('home')" class="p-1 rounded-full hover:bg-[#EFECE4] transition-colors">
+                <svg class="w-5 h-5 text-[#171717]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              </button>
+              <h2 class="text-base font-bold text-[#171717]">Subscriptions</h2>
+              <button onclick="focusSearch()" class="p-1 rounded-full hover:bg-[#EFECE4] transition-colors">
+                <svg class="w-5 h-5 text-[#171717]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </button>
+            </div>
+
+            <!-- Filter Chips Row -->
+            <div class="flex items-center gap-2 pt-1">
+              <button onclick="setCategoryFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all ${categoryFilter === 'all' ? 'bg-[#3D5438] text-white shadow-xs' : 'bg-[#F0ECE4] text-[#171717] hover:bg-[#E5E0D8]'}">
+                All
+              </button>
+              <button onclick="setCategoryFilter('upcoming')" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all ${categoryFilter === 'upcoming' ? 'bg-[#3D5438] text-white shadow-xs' : 'bg-[#F0ECE4] text-[#171717] hover:bg-[#E5E0D8]'}">
+                Upcoming
+              </button>
+              <button onclick="setCategoryFilter('needs_review')" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all ${categoryFilter === 'needs_review' ? 'bg-[#3D5438] text-white shadow-xs' : 'bg-[#F0ECE4] text-[#171717] hover:bg-[#E5E0D8]'}">
+                Needs review
+              </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative">
+              <svg class="w-4 h-4 text-[#737373] absolute left-3.5 top-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input
+                id="htmlSearchInput"
+                type="text"
+                placeholder="Search subscriptions..."
+                value="${searchQuery}"
+                oninput="handleSearch(this.value)"
+                class="w-full bg-[#F5F2EA] focus:bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-full pl-9 pr-4 py-2 text-xs text-[#171717] placeholder-[#737373] outline-none transition-colors"
+              />
+            </div>
+
+            <!-- Subscriptions List -->
+            <div class="space-y-1.5 pt-1">
+              ${filtered.map(sub => {
+                const isReview = sub.status === 'needs_review';
+                const isAnnual = sub.interval === 'year';
+                return `
+                  <div onclick="selectSubscriptionAndGoDetails('${sub.id}')" class="cursor-pointer bg-white hover:bg-[#FAF8F5] p-3 rounded-2xl border border-[#E5E0D8]/70 flex items-center justify-between shadow-xs transition-colors">
+                    <div class="flex items-center gap-3">
+                      ${renderBrandIcon(sub.providerName, 36)}
+                      <div>
+                        <h4 class="text-sm font-bold text-[#171717]">${sub.providerName}</h4>
+                        <div class="text-xs text-[#737373]">${isAnnual ? 'Annual' : 'Monthly'} · ${sub.nextRenewalDate}</div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${isReview ? 'bg-[#FDEEE2] text-[#C2671A]' : 'bg-[#E2EBD8] text-[#3D5438]'}">
+                        ${isReview ? 'Needs review' : 'Active'}
+                      </span>
+                      <svg class="w-4 h-4 text-[#737373]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+          ${renderBottomNav('explore')}
+        </div>
+      `;
+    }
+
+    // --- Screen 4: Subscription Details View ---
+    function renderScreen4() {
+      const sub = getSelectedSubscription();
+      const isMonthly = sub.interval === 'month';
+
+      return `
+        <div class="flex-1 flex flex-col justify-between bg-[#FAF8F5] text-[#171717]">
+          <div class="flex-1 overflow-y-auto px-5 pt-2 pb-6 space-y-4">
+            <!-- Header Bar -->
+            <div class="flex items-center justify-between">
+              <button onclick="navigateToScreen('subscriptions')" class="p-1 rounded-full hover:bg-[#EFECE4] transition-colors">
+                <svg class="w-5 h-5 text-[#171717]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              </button>
+              <button onclick="openEditModalFor('${sub.id}')" class="p-1 rounded-full hover:bg-[#EFECE4] transition-colors">
+                <svg class="w-5 h-5 text-[#171717]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </button>
+            </div>
+
+            <!-- Brand Header -->
+            <div class="flex items-center gap-3.5 pt-1">
+              ${renderBrandIcon(sub.providerName, 48)}
+              <div>
+                <h2 class="text-xl font-black text-[#171717] tracking-tight">${sub.providerName}</h2>
+                <div class="text-xs text-[#737373] font-medium">${sub.notes || sub.planName || 'Music. Podcasts. More.'}</div>
+              </div>
+            </div>
+
+            <!-- Split Price & Payment Card -->
+            <div class="bg-[#F0ECE4] rounded-2xl p-4 flex items-center justify-between border border-[#E5E0D8]/60 shadow-xs">
+              <div class="flex-1 pr-3 border-r border-[#D8D2C6]/60">
+                <div class="text-xl font-black text-[#171717] tracking-tight">₦${sub.amount.toLocaleString()}</div>
+                <div class="text-xs text-[#737373] font-medium mt-0.5">${isMonthly ? 'per month' : 'per year'}</div>
+              </div>
+              <div class="flex-1 pl-4 flex items-start gap-2.5">
+                <div class="p-1.5 rounded-lg bg-white border border-[#D8D2C6]/70 text-[#3D5438] shrink-0 mt-0.5">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div>
+                  <div class="text-[11px] text-[#737373] font-medium">Next payment</div>
+                  <div class="text-xs font-bold text-[#171717] mt-0.5">${sub.nextRenewalDate}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Provenance Row -->
+            <div class="bg-white rounded-2xl p-3.5 border border-[#E5E0D8]/70 flex items-center gap-2.5 shadow-xs">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.5l8.073-6.007c1.618-1.214 3.927-.059 3.927 1.964z" /></svg>
+              <span class="text-xs font-bold text-[#171717]">Found in Gmail</span>
+            </div>
+
+            <!-- Last Payment Row -->
+            <div class="bg-white rounded-2xl p-3.5 border border-[#E5E0D8]/70 shadow-xs space-y-0.5">
+              <div class="text-[11px] text-[#737373] font-medium">Last payment</div>
+              <div class="text-xs font-bold text-[#171717]">Mar 30, 2025 · ₦${sub.amount.toLocaleString()}</div>
+            </div>
+
+            <!-- Reminder Row -->
+            <div class="bg-white rounded-2xl p-3.5 border border-[#E5E0D8]/70 flex items-center justify-between shadow-xs">
+              <div>
+                <div class="text-xs font-bold text-[#171717]">Reminder</div>
+                <div class="text-[11px] text-[#737373] font-medium mt-0.5">Get notified before renewal</div>
+              </div>
+              <button onclick="toggleReminder('${sub.id}')" class="w-11 h-6 rounded-full transition-colors relative p-0.5 ${sub.remindersEnabled ? 'bg-[#3D5438]' : 'bg-[#D8D2C6]'}">
+                <div class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${sub.remindersEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+              </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-2.5 pt-1">
+              <button onclick="openEditModalFor('${sub.id}')" class="w-full py-3 px-4 rounded-full bg-white hover:bg-[#F5F2EA] border border-[#D8D2C6] text-[#171717] font-bold text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-xs">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span>Edit details</span>
+              </button>
+
+              <div onclick="openCancellationModalFor('${sub.id}')" class="cursor-pointer bg-[#FDF2F0] hover:bg-[#FBE8E5] border border-[#FECDCA] rounded-2xl p-3.5 flex items-center justify-between text-[#B42318] transition-colors shadow-xs active:scale-[0.98]">
+                <div class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 shrink-0 text-[#B42318]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span class="text-xs font-bold">Cancellation instructions</span>
+                </div>
+                <svg class="w-4 h-4 text-[#B42318]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Main Render Function ---
+    function render() {
+      const app = document.getElementById('app');
+
+      let mainContent = '';
+
+      if (viewMode === 'phone') {
+        let screenHtml = '';
+        if (currentScreen === 'onboarding') screenHtml = renderScreen1();
+        else if (currentScreen === 'home') screenHtml = renderScreen2();
+        else if (currentScreen === 'subscriptions') screenHtml = renderScreen3();
+        else if (currentScreen === 'details') screenHtml = renderScreen4();
+        else if (currentScreen === 'saved') {
+          screenHtml = `
+            <div class="flex-1 flex flex-col justify-between bg-[#FAF8F5]">
+              <div class="flex-1 p-5 overflow-y-auto space-y-3">
+                <h2 class="text-lg font-bold text-[#171717]">Saved Projections</h2>
+                <div class="space-y-2">
+                  ${subscriptions.map(s => `
+                    <div onclick="selectSubscriptionAndGoDetails('${s.id}')" class="p-3 bg-white rounded-2xl border border-[#E5E0D8] flex items-center justify-between cursor-pointer">
+                      <div class="flex items-center gap-2.5">
+                        ${renderBrandIcon(s.providerName, 32)}
+                        <div>
+                          <div class="text-xs font-bold">${s.providerName}</div>
+                          <div class="text-[11px] text-[#737373]">${s.nextRenewalDate}</div>
+                        </div>
+                      </div>
+                      <span class="text-xs font-bold">₦${s.amount.toLocaleString()}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              ${renderBottomNav('saved')}
+            </div>
+          `;
+        } else if (currentScreen === 'profile') {
+          screenHtml = `
+            <div class="flex-1 flex flex-col justify-between bg-[#FAF8F5]">
+              <div class="flex-1 p-5 overflow-y-auto space-y-3">
+                <h2 class="text-lg font-bold text-[#171717]">Profile & Settings</h2>
+                <div class="p-4 bg-white rounded-2xl border border-[#E5E0D8] space-y-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-[#3D5438] text-white flex items-center justify-center font-bold">U</div>
+                    <div>
+                      <div class="text-sm font-bold text-[#171717]">Reconcile User</div>
+                      <div class="text-xs text-[#737373]">user@reconcile.app</div>
+                    </div>
+                  </div>
+                  <div class="pt-2 border-t border-[#E5E0D8] space-y-2 text-xs">
+                    <button onclick="openGmailModal()" class="w-full py-2.5 px-3 rounded-xl bg-[#F5F2EA] text-left font-semibold flex items-center justify-between">
+                      <span>Gmail Integration</span>
+                      <span class="text-[#3D5438]">Review</span>
+                    </button>
+                    <button onclick="exportJSON()" class="w-full py-2.5 px-3 rounded-xl bg-[#F5F2EA] text-left font-semibold flex items-center justify-between">
+                      <span>Export Subscriptions (JSON)</span>
+                      <span>Download</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              ${renderBottomNav('profile')}
+            </div>
+          `;
+        }
+
+        mainContent = `
+          <div class="flex flex-col items-center justify-center my-auto">
+            <!-- Simulator Quick Screen Switcher -->
+            <div class="flex items-center gap-1.5 mb-4 bg-white px-3 py-1.5 rounded-full border border-[#E5E0D8] shadow-xs text-xs font-semibold overflow-x-auto max-w-full">
+              <span class="text-[11px] text-[#737373] mr-1 hidden sm:inline">Jump:</span>
+              <button onclick="navigateToScreen('onboarding')" class="px-2.5 py-1 rounded-full ${currentScreen === 'onboarding' ? 'bg-[#3D5438] text-white' : 'text-[#737373] hover:bg-[#F0ECE4]'}">1. Onboarding</button>
+              <button onclick="navigateToScreen('home')" class="px-2.5 py-1 rounded-full ${currentScreen === 'home' ? 'bg-[#3D5438] text-white' : 'text-[#737373] hover:bg-[#F0ECE4]'}">2. Home</button>
+              <button onclick="navigateToScreen('subscriptions')" class="px-2.5 py-1 rounded-full ${currentScreen === 'subscriptions' ? 'bg-[#3D5438] text-white' : 'text-[#737373] hover:bg-[#F0ECE4]'}">3. Subscriptions</button>
+              <button onclick="navigateToScreen('details')" class="px-2.5 py-1 rounded-full ${currentScreen === 'details' ? 'bg-[#3D5438] text-white' : 'text-[#737373] hover:bg-[#F0ECE4]'}">4. Details (${getSelectedSubscription().providerName})</button>
+            </div>
+            ${wrapPhoneFrame(screenHtml)}
+          </div>
+        `;
+      } else if (viewMode === 'all4') {
+        mainContent = `
+          <div class="max-w-[1600px] mx-auto w-full">
+            <div class="text-center mb-6">
+              <h2 class="text-2xl font-black text-[#171717] tracking-tight">All 4 Screens Preview (1:1 Reference Match)</h2>
+              <p class="text-xs sm:text-sm text-[#737373] mt-1 max-w-lg mx-auto">
+                Recreated with pixel precision matching your design photo. All screens share live dynamic state.
+              </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 justify-items-center">
+              ${wrapPhoneFrame(renderScreen1(), 'Screen 1 · Welcome')}
+              ${wrapPhoneFrame(renderScreen2(), 'Screen 2 · Your subscriptions')}
+              ${wrapPhoneFrame(renderScreen3(), 'Screen 3 · Subscriptions')}
+              ${wrapPhoneFrame(renderScreen4(), `Screen 4 · Details (${getSelectedSubscription().providerName})`)}
+            </div>
+          </div>
+        `;
+      } else if (viewMode === 'desktop') {
+        const totalSpend = calculateTotalMonthlySpend();
+        mainContent = `
+          <div class="max-w-5xl mx-auto w-full space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div class="bg-[#F0ECE4] rounded-3xl p-6 border border-[#E5E0D8]">
+                <span class="text-xs text-[#737373] font-bold block mb-1">Total Monthly Spend</span>
+                <span class="text-3xl font-black text-[#171717]">₦${totalSpend.toLocaleString()}</span>
+                <span class="text-xs text-[#3D5438] font-semibold block mt-2">${subscriptions.length} Tracked Services</span>
+              </div>
+              <div class="bg-white rounded-3xl p-6 border border-[#E5E0D8]">
+                <span class="text-xs text-[#737373] font-bold block mb-1">Next Up Renewal</span>
+                <div class="text-lg font-bold text-[#171717]">Netflix</div>
+                <div class="text-xs text-[#737373]">Apr 28, 2025 · ₦7,500</div>
+              </div>
+              <div class="bg-white rounded-3xl p-6 border border-[#E5E0D8] flex flex-col justify-between">
+                <div>
+                  <span class="text-xs text-[#737373] font-bold block mb-1">Gmail Detection</span>
+                  <span class="text-sm font-bold text-[#171717]">Scan for Subscription Receipts</span>
+                </div>
+                <button onclick="openGmailModal()" class="w-full mt-3 py-2 px-3 rounded-full bg-[#3D5438] text-white font-bold text-xs">Connect Gmail</button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-[#E5E0D8] p-6 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-[#171717]">All Subscriptions</h3>
+                <span class="text-xs text-[#737373]">${subscriptions.length} total entries</span>
+              </div>
+              <div class="divide-y divide-[#E5E0D8]">
+                ${subscriptions.map(s => `
+                  <div onclick="selectSubscriptionAndGoDetails('${s.id}')" class="py-3 flex items-center justify-between hover:bg-[#FAF8F5] px-2 rounded-xl cursor-pointer">
+                    <div class="flex items-center gap-3">
+                      ${renderBrandIcon(s.providerName, 36)}
+                      <div>
+                        <div class="text-sm font-bold text-[#171717]">${s.providerName}</div>
+                        <div class="text-xs text-[#737373]">${s.planName} · ${s.nextRenewalDate}</div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span class="text-sm font-black text-[#171717]">₦${s.amount.toLocaleString()}</span>
+                      <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${s.status === 'needs_review' ? 'bg-[#FDEEE2] text-[#C2671A]' : 'bg-[#E2EBD8] text-[#3D5438]'}">
+                        ${s.status === 'needs_review' ? 'Needs review' : 'Active'}
+                      </span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      app.innerHTML = `
+        <!-- Top Toolbar -->
+        <header class="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-2.5">
+          <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-[#3D5438] flex items-center justify-center text-white font-black text-sm shadow-sm">R</div>
+              <div>
+                <span class="font-extrabold tracking-[0.18em] text-sm text-[#171717] block leading-none">RECONCILE</span>
+                <span class="text-[10px] text-[#737373] font-medium hidden sm:inline">Know What Renews Next</span>
+              </div>
+            </div>
+
+            <!-- Mode Switcher -->
+            <div class="flex items-center bg-[#F0ECE4] p-1 rounded-full border border-[#E5E0D8] text-xs font-bold">
+              <button onclick="setViewMode('phone')" class="px-3 py-1.5 rounded-full transition-all ${viewMode === 'phone' ? 'bg-white text-[#3D5438] shadow-xs' : 'text-[#737373] hover:text-[#171717]'}">
+                📱 Interactive Phone
+              </button>
+              <button onclick="setViewMode('all4')" class="px-3 py-1.5 rounded-full transition-all ${viewMode === 'all4' ? 'bg-white text-[#3D5438] shadow-xs' : 'text-[#737373] hover:text-[#171717]'}">
+                🖼 All 4 Screens View
+              </button>
+              <button onclick="setViewMode('desktop')" class="hidden md:inline px-3 py-1.5 rounded-full transition-all ${viewMode === 'desktop' ? 'bg-white text-[#3D5438] shadow-xs' : 'text-[#737373] hover:text-[#171717]'}">
+                💻 Desktop View
+              </button>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2">
+              <button onclick="resetDemoData()" title="Reset to reference demo data" class="p-2 rounded-full bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-[#737373] transition-colors">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              </button>
+              <button onclick="openAddModal()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-xs shadow-sm transition-all active:scale-95">
+                <span>+ Add Subscription</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="flex-1 flex flex-col justify-center py-6 px-4">
+          ${mainContent}
+        </main>
+
+        <!-- Modals -->
+        ${renderModals()}
+
+        <!-- Toast -->
+        ${toastMessage ? `
+          <div class="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-full bg-[#3D5438] text-white font-bold text-xs shadow-xl animate-in slide-in-from-bottom duration-200">
+            ${toastMessage}
+          </div>
+        ` : ''}
+      `;
+    }
+
+    // --- Modals Renderer ---
+    function renderModals() {
+      let html = '';
+
+      // Add/Edit Modal
+      if (isAddEditOpen) {
+        const isEditing = !!editingSub;
+        html += `
+          <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+            <div class="relative w-full max-w-lg rounded-3xl bg-[#FAF8F5] border border-[#E5E0D8] shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto text-[#171717]">
+              <div class="flex items-center justify-between pb-2 border-b border-[#E5E0D8]">
+                <h3 class="font-extrabold text-base">${isEditing ? 'Edit Subscription' : 'Add Subscription'}</h3>
+                <button onclick="closeAddEditModal()" class="p-1 rounded-full hover:bg-[#EFECE4] text-[#737373]">✕</button>
+              </div>
+
+              <form onsubmit="handleSaveForm(event)" class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-semibold mb-1">Provider Name *</label>
+                  <input id="formProvider" type="text" required value="${isEditing ? editingSub.providerName : ''}" placeholder="e.g. Netflix, Spotify" class="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3 py-2 outline-none text-sm" />
+                </div>
+                <div>
+                  <label class="block font-semibold mb-1">Plan Name / Notes</label>
+                  <input id="formPlan" type="text" value="${isEditing ? (editingSub.planName || editingSub.notes || '') : ''}" placeholder="e.g. Premium Family" class="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3 py-2 outline-none text-sm" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-semibold mb-1">Amount (₦) *</label>
+                    <input id="formAmount" type="number" required value="${isEditing ? editingSub.amount : 2500}" class="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3 py-2 outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold mb-1">Recurrence</label>
+                    <select id="formInterval" class="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3 py-2 outline-none text-sm">
+                      <option value="month" ${isEditing && editingSub.interval === 'month' ? 'selected' : ''}>Monthly</option>
+                      <option value="year" ${isEditing && editingSub.interval === 'year' ? 'selected' : ''}>Annual</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block font-semibold mb-1">Next Expected Renewal *</label>
+                  <input id="formDate" type="date" required value="${isEditing ? editingSub.nextRenewalDate : '2025-05-15'}" class="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3 py-2 outline-none text-sm" />
+                </div>
+                <div class="flex items-center justify-between pt-3 border-t border-[#E5E0D8]">
+                  ${isEditing ? `<button type="button" onclick="handleDeleteSub('${editingSub.id}')" class="px-3 py-1.5 rounded-full bg-red-50 text-red-600 font-bold border border-red-200">Delete</button>` : '<div></div>'}
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeAddEditModal()" class="px-4 py-2 rounded-full bg-white border border-[#D8D2C6] font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-full bg-[#3D5438] text-white font-bold">Save</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+      }
+
+      // Cancellation Modal
+      if (isCancelOpen && cancellingSub) {
+        html += `
+          <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+            <div class="relative w-full max-w-md rounded-3xl bg-[#FAF8F5] border border-[#E5E0D8] shadow-2xl p-6 space-y-4 text-[#171717]">
+              <div class="flex items-center justify-between pb-2 border-b border-[#E5E0D8]">
+                <h3 class="font-extrabold text-base">Cancel ${cancellingSub.providerName}</h3>
+                <button onclick="closeCancelModal()" class="p-1 rounded-full hover:bg-[#EFECE4] text-[#737373]">✕</button>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-[#FFF4E5] border border-[#FDE0B6] text-xs text-[#7B4109]">
+                <strong>Official Cancellation Handoff:</strong> We guide you directly to the verified provider portal. We never claim background cancellation.
+              </div>
+              <div class="space-y-1.5 text-xs text-[#171717]">
+                <div class="font-bold">Instructions:</div>
+                <div>1. Log into your verified ${cancellingSub.providerName} account.</div>
+                <div>2. Go to Subscription / Billing Management.</div>
+                <div>3. Select Cancel Plan and confirm your choice.</div>
+              </div>
+              <div class="pt-2 flex flex-col gap-2">
+                <a href="${cancellingSub.cancellationUrl || 'https://google.com'}" target="_blank" class="w-full py-3 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white text-center font-bold text-xs">
+                  Open Official ${cancellingSub.providerName} Page ↗
+                </a>
+                <button onclick="confirmCancelled('${cancellingSub.id}')" class="w-full py-2.5 rounded-full bg-red-50 text-red-700 font-bold text-xs border border-red-200">
+                  Mark as Cancelled in Reconcile
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Gmail OAuth Modal
+      if (isGmailOpen) {
+        html += `
+          <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+            <div class="relative w-full max-w-md rounded-3xl bg-[#FAF8F5] border border-[#E5E0D8] shadow-2xl p-6 space-y-4 text-[#171717]">
+              <div class="flex items-center justify-between pb-2 border-b border-[#E5E0D8]">
+                <h3 class="font-extrabold text-base">Gmail Subscription Discovery</h3>
+                <button onclick="closeGmailModal()" class="p-1 rounded-full hover:bg-[#EFECE4] text-[#737373]">✕</button>
+              </div>
+              <div class="p-3.5 rounded-2xl bg-white border border-[#E5E0D8] text-xs space-y-2">
+                <div class="font-bold text-[#3D5438]">🔒 Consent & Privacy Overview</div>
+                <div class="text-[#737373] leading-relaxed">
+                  We use read-only OAuth scopes to find subscription receipts. We never see your password or retain private email messages.
+                </div>
+              </div>
+              <button onclick="simulateGmailImport()" class="w-full py-3 rounded-full bg-[#3D5438] text-white font-bold text-xs shadow-sm">
+                Import Sample Canva Pro Candidate
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      return html;
+    }
+
+    // --- Action Handlers ---
+    function setViewMode(mode) {
+      viewMode = mode;
+      render();
+    }
+
+    function navigateToScreen(screen) {
+      currentScreen = screen;
+      if (screen === 'home') activeBottomTab = 'home';
+      else if (screen === 'subscriptions') activeBottomTab = 'explore';
+      render();
+    }
+
+    function handleBottomTabChange(tab) {
+      activeBottomTab = tab;
+      if (tab === 'home') currentScreen = 'home';
+      else if (tab === 'explore') currentScreen = 'subscriptions';
+      else if (tab === 'saved') currentScreen = 'saved';
+      else if (tab === 'profile') currentScreen = 'profile';
+      render();
+    }
+
+    function selectSubscriptionAndGoDetails(id) {
+      selectedSubId = id;
+      currentScreen = 'details';
+      render();
+    }
+
+    function toggleReminder(id) {
+      subscriptions = subscriptions.map(s => s.id === id ? { ...s, remindersEnabled: !s.remindersEnabled } : s);
+      saveSubscriptions();
+      showToast('Reminder toggled.');
+    }
+
+    function setCategoryFilter(filter) {
+      categoryFilter = filter;
+      render();
+    }
+
+    function handleSearch(q) {
+      searchQuery = q;
+      render();
+      const input = document.getElementById('htmlSearchInput');
+      if (input) {
+        input.focus();
+        input.setSelectionRange(q.length, q.length);
+      }
+    }
+
+    function focusSearch() {
+      const input = document.getElementById('htmlSearchInput');
+      if (input) input.focus();
+    }
+
+    function openAddModal() {
+      editingSub = null;
+      isAddEditOpen = true;
+      render();
+    }
+
+    function openEditModalFor(id) {
+      editingSub = subscriptions.find(s => s.id === id) || null;
+      isAddEditOpen = true;
+      render();
+    }
+
+    function closeAddEditModal() {
+      isAddEditOpen = false;
+      editingSub = null;
+      render();
+    }
+
+    function handleSaveForm(e) {
+      e.preventDefault();
+      const provider = document.getElementById('formProvider').value.trim();
+      const plan = document.getElementById('formPlan').value.trim();
+      const amount = Number(document.getElementById('formAmount').value);
+      const interval = document.getElementById('formInterval').value;
+      const date = document.getElementById('formDate').value;
+
+      if (!provider || !date) return;
+
+      if (editingSub) {
+        subscriptions = subscriptions.map(s => s.id === editingSub.id ? {
+          ...s,
+          providerName: provider,
+          planName: plan,
+          amount,
+          interval,
+          nextRenewalDate: date,
+        } : s);
+        showToast(`Updated "${provider}".`);
+      } else {
+        const newSub = {
+          id: `sub-${Date.now()}`,
+          providerName: provider,
+          planName: plan || 'Standard Subscription',
+          amount,
+          currency: 'NGN',
+          interval,
+          nextRenewalDate: date,
+          anchorDay: new Date(date).getUTCDate(),
+          category: 'General',
+          provenance: 'manual',
+          status: 'active',
+          remindersEnabled: true
+        };
+        subscriptions = [newSub, ...subscriptions];
+        selectedSubId = newSub.id;
+        showToast(`Added "${provider}".`);
+      }
+
+      saveSubscriptions();
+      closeAddEditModal();
+    }
+
+    function handleDeleteSub(id) {
+      subscriptions = subscriptions.filter(s => s.id !== id);
+      saveSubscriptions();
+      closeAddEditModal();
+      currentScreen = 'subscriptions';
+      showToast('Subscription deleted.');
+    }
+
+    function openCancellationModalFor(id) {
+      cancellingSub = subscriptions.find(s => s.id === id) || null;
+      isCancelOpen = true;
+      render();
+    }
+
+    function closeCancelModal() {
+      isCancelOpen = false;
+      cancellingSub = null;
+      render();
+    }
+
+    function confirmCancelled(id) {
+      subscriptions = subscriptions.map(s => s.id === id ? { ...s, status: 'cancelled' } : s);
+      saveSubscriptions();
+      closeCancelModal();
+      showToast('Marked as cancelled.');
+    }
+
+    function openGmailModal() {
+      isGmailOpen = true;
+      render();
+    }
+
+    function closeGmailModal() {
+      isGmailOpen = false;
+      render();
+    }
+
+    function simulateGmailImport() {
+      const candidate = {
+        id: `sub-canva-${Date.now()}`,
+        providerName: 'Canva Pro',
+        planName: 'Annual Design Suite',
+        amount: 11000,
+        currency: 'NGN',
+        interval: 'year',
+        nextRenewalDate: '2025-12-15',
+        anchorDay: 15,
+        category: 'Productivity',
+        provenance: 'gmail',
+        status: 'needs_review',
+        remindersEnabled: true,
+        cancellationUrl: 'https://www.canva.com/account-settings/billing-and-teams'
+      };
+      subscriptions = [candidate, ...subscriptions];
+      saveSubscriptions();
+      closeGmailModal();
+      currentScreen = 'subscriptions';
+      categoryFilter = 'needs_review';
+      showToast('Imported Canva Pro candidate for review!');
+    }
+
+    function resetDemoData() {
+      subscriptions = [...INITIAL_SUBSCRIPTIONS];
+      saveSubscriptions();
+      selectedSubId = 'sub-spotify';
+      showToast('Reset to reference demo data.');
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(subscriptions, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `reconcile_subscriptions_${new Date().toISOString().split('T')[0]}.json`);
+      dlAnchor.click();
+    }
+
+    // Initial Render
+    render();
+  </script>
+</body>
+</html>

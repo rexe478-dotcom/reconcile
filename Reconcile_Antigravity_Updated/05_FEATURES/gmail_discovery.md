@@ -1,0 +1,2 @@
+# Gmail discovery (optional)
+Use official Google OAuth and minimum necessary scopes. Explain data access before consent. Never request Gmail passwords. Treat detections as candidates, show concise evidence, and require user confirm/edit/dismiss. Avoid storing full message bodies. Encrypt tokens, restrict access, provide disconnect and deletion, and do not scan before consent. If OAuth setup is absent, show an honest unconfigured state. Handle denial, expiry, rate limits, unsupported accounts, and no results.
