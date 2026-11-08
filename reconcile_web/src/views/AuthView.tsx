@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Loader2, AlertCircle, Mail, Lock, ShieldCheck, KeyRound, ExternalLink, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, EyeOff, Loader2, AlertCircle, Mail, Lock, ShieldCheck } from 'lucide-react';
 import { AuthService } from '../services/authService';
 import { MascotLogo } from '../components/common/MascotLogo';
 import { RealGmailService } from '../services/realGmailService';
@@ -17,9 +17,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showGoogleSetup, setShowGoogleSetup] = useState(false);
-  const [clientIdInput, setClientIdInput] = useState(() => RealGmailService.getClientId());
-  const [clientIdSaved, setClientIdSaved] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,30 +56,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) 
       }
     } catch (err: any) {
       if (err.message === 'MISSING_CLIENT_ID') {
-        setShowGoogleSetup(true);
-        setError('Google Client ID is not configured yet. Paste your free Google OAuth Client ID below to enable 1-click Google Sign-In.');
+        setError('Google Sign-In is temporarily unavailable. Please sign in with email below.');
       } else {
-        setError('Google Sign-In was cancelled or failed. You can sign in with email below.');
+        setError('Google Sign-In was cancelled or could not connect. Please try again.');
       }
     } finally {
       setGoogleLoading(false);
     }
-  };
-
-  const handleSaveClientId = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!clientIdInput.trim()) {
-      setError('Please paste a valid Google Client ID.');
-      return;
-    }
-    RealGmailService.setClientId(clientIdInput.trim());
-    setClientIdSaved(true);
-    setError(null);
-    setTimeout(() => {
-      setClientIdSaved(false);
-      setShowGoogleSetup(false);
-      handleGoogleSignIn();
-    }, 400);
   };
 
   const isValid = email.includes('@') && password.length >= 6;
@@ -119,62 +99,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) 
         )}
         <span>Continue with Google</span>
       </button>
-
-      {/* Inline Google OAuth Setup Drawer (Shown if Client ID is missing or on request) */}
-      {showGoogleSetup && (
-        <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#171717] flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-[#3D5438]" />
-              <span>Google Cloud OAuth Client ID</span>
-            </span>
-            <a
-              href="https://console.cloud.google.com/apis/credentials"
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] text-[#3D5438] hover:underline font-semibold flex items-center gap-1 min-h-[44px]"
-            >
-              <span>Google Console</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-
-          <form onSubmit={handleSaveClientId} className="space-y-2">
-            <input
-              type="text"
-              value={clientIdInput}
-              onChange={(e) => setClientIdInput(e.target.value)}
-              placeholder="123456...apps.googleusercontent.com"
-              className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-white border border-[#E5E0D8] text-xs font-mono text-[#171717] focus:outline-hidden focus:border-[#3D5438] focus:ring-1 focus:ring-[#3D5438]"
-            />
-            <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                className="flex-1 min-h-[44px] py-2 px-3 rounded-xl bg-[#3D5438] hover:bg-[#32462E] active:scale-[0.98] text-white text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                {clientIdSaved ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Saved! Signing In...</span>
-                  </>
-                ) : (
-                  <span>Save & Continue with Google</span>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowGoogleSetup(false)}
-                className="min-h-[44px] py-2 px-3 rounded-xl bg-white hover:bg-gray-50 border border-[#E5E0D8] text-xs font-semibold text-[#737373] transition-all cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-          <p className="text-[11px] text-[#737373] leading-relaxed">
-            Create a free Web OAuth Client ID in Google Cloud Console. Set Authorized JavaScript origin to <code className="bg-white px-1 py-0.5 rounded border border-[#E5E0D8] text-[10px]">https://rexe478-dotcom.github.io</code>.
-          </p>
-        </div>
-      )}
 
       {/* Clean Divider */}
       <div className="relative">
