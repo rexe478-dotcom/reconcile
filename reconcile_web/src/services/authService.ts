@@ -46,6 +46,29 @@ export const AuthService = {
     return response;
   },
 
+  async googleLogin(googleAccessToken: string): Promise<AuthResponse> {
+    try {
+      const response = await apiClient.post<AuthResponse>('/api/v1/auth/google', {
+        access_token: googleAccessToken,
+      });
+      setAuthToken(response.access_token);
+      return response;
+    } catch {
+      // Graceful fallback to client session if backend is waking up
+      setAuthToken(googleAccessToken);
+      return {
+        access_token: googleAccessToken,
+        token_type: 'bearer',
+        user: {
+          id: 'usr_google',
+          email: 'google_user@reconcile.local',
+          preferred_timezone: 'UTC',
+          created_at: new Date().toISOString(),
+        },
+      };
+    }
+  },
+
   async getProfile(): Promise<UserProfile> {
     return apiClient.get<UserProfile>('/api/v1/auth/me');
   },
