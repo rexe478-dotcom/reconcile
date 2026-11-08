@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { 
   BarChart2, 
   Calendar, 
@@ -259,31 +259,34 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {activeSubs.slice(0, 8).map((sub) => (
+        <div className="space-y-2.5">
+          {activeSubs.slice(0, 6).map((sub) => (
             <div
               key={sub.id}
               onClick={() => onSelectSubscription(sub)}
-              className="p-4 rounded-2xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/60 hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between space-y-3"
+              className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/60 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between gap-3 group card-lift"
             >
-              <div className="flex items-start justify-between">
-                <BrandIcon providerName={sub.providerName} size={40} />
-                <span className="text-[11px] font-bold text-[#737373] bg-[#F5F2EA] px-2 py-0.5 rounded-full capitalize">
-                  {sub.interval}
-                </span>
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <BrandIcon providerName={sub.providerName} size={38} className="shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#171717] group-hover:text-[#3D5438] transition-colors truncate">
+                      {sub.providerName}
+                    </h3>
+                    <span className="text-[10px] font-bold text-[#737373] bg-[#FAF8F5] px-2 py-0.5 rounded-full capitalize shrink-0 border border-[#E5E0D8]">
+                      {sub.interval}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#737373] truncate mt-0.5">{sub.planName || sub.category}</p>
+                </div>
               </div>
 
-              <div>
-                <h3 className="text-sm font-bold text-[#171717]">{sub.providerName}</h3>
-                <p className="text-xs text-[#737373] truncate">{sub.planName || 'Active subscription'}</p>
-              </div>
-
-              <div className="pt-2 border-t border-[#E5E0D8]/60 flex items-center justify-between">
-                <span className="text-sm font-black text-[#171717]">
+              <div className="text-right shrink-0">
+                <span className="text-sm sm:text-base font-black text-[#171717] block">
                   {InsightsCalculator.formatCurrency(sub.amount, sub.currency)}
                 </span>
                 <span className="text-[11px] text-[#737373]">
-                  {sub.nextRenewalDate}
+                  Renews {sub.nextRenewalDate}
                 </span>
               </div>
             </div>

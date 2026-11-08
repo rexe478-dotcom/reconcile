@@ -5,7 +5,7 @@ import {
   Cloud, 
   CloudOff, 
   Calendar as CalendarIcon, 
-  Grid, 
+  CreditCard, 
   LayoutDashboard, 
   Settings as SettingsIcon, 
   User as UserIcon, 
@@ -242,7 +242,7 @@ export const App: React.FC = () => {
                   : 'text-[#737373] hover:text-[#171717]'
               }`}
             >
-              <Grid className="w-3.5 h-3.5" />
+              <CreditCard className="w-3.5 h-3.5" />
               <span>Subscriptions ({subscriptions.length})</span>
             </button>
 
@@ -367,7 +367,7 @@ export const App: React.FC = () => {
             activeTab === 'subscriptions' ? 'text-[#3D5438]' : 'text-[#737373]'
           }`}
         >
-          <Grid className="w-5 h-5" />
+          <CreditCard className="w-5 h-5" />
           <span className="text-[10px] font-bold">Subscriptions</span>
         </button>
 
