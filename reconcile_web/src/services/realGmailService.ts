@@ -33,9 +33,12 @@ export class RealGmailService {
   }
 
   /**
-   * Request Real Google OAuth token with Gmail Readonly scope
+   * Request Real Google OAuth token
+   * Defaults to basic email/profile for frictionless sign-in; pass gmail.readonly for inbox scanning
    */
-  public static async requestGoogleAccessToken(): Promise<string> {
+  public static async requestGoogleAccessToken(
+    scope: string = 'email profile openid'
+  ): Promise<string> {
     const clientId = this.getClientId();
     if (!clientId) {
       throw new Error('MISSING_CLIENT_ID');
@@ -49,7 +52,7 @@ export class RealGmailService {
       try {
         const tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: clientId,
-          scope: 'https://www.googleapis.com/auth/gmail.readonly email',
+          scope,
           callback: (response: any) => {
             if (response.error) {
               reject(new Error(response.error_description || response.error));

@@ -41,8 +41,10 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
         return;
       }
 
-      // 1. Request real Google OAuth consent & access token
-      const token = await RealGmailService.requestGoogleAccessToken();
+      // 1. Request real Google OAuth consent & access token with Gmail read scope
+      const token = await RealGmailService.requestGoogleAccessToken(
+        'https://www.googleapis.com/auth/gmail.readonly email'
+      );
 
       // 2. Fetch real subscription receipts from Gmail API
       const realSubs = await RealGmailService.fetchRealSubscriptionReceipts(token);
