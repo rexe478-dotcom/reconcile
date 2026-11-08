@@ -153,24 +153,24 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         )}
       </div>
 
-      {/* Signature Financial Guardian & Interactive Tour */}
-      <div className="p-6 bg-white rounded-3xl border border-[#E5E0D8] space-y-4 shadow-xs">
+      {/* Brand Mascot & Interactive Onboarding Tour */}
+      <div className="p-6 bg-white rounded-3xl border border-[#E5E0D5] space-y-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-[#171717] flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#3D5438]" />
-            <span>The Financial Guardian</span>
+          <h2 className="text-base font-bold text-[#1A1A1A] flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#89AC50]" />
+            <span>Reconcile Brand Identity</span>
           </h2>
-          <span className="text-xs font-bold text-[#3D5438] bg-[#E2EBD8] px-2.5 py-0.5 rounded-full">
-            Signature Character
+          <span className="text-xs font-bold text-[#1A1A1A] bg-[#EBF3DF] px-2.5 py-0.5 rounded-full border border-[#E5E0D5]">
+            Official Mascot
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-[#F5F3ED] border border-[#E5E0D5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <MascotLogo size={58} interactive={true} />
+            <MascotLogo pose="standing" size={58} interactive={true} />
             <div>
-              <div className="font-bold text-sm text-[#171717]">Vigilant Owl Guardian</div>
-              <p className="text-xs text-[#737373] mt-0.5 max-w-md">
+              <div className="font-bold text-sm text-[#1A1A1A]">Reconcile Mascot Character</div>
+              <p className="text-xs text-[#858477] mt-0.5 max-w-md">
                 Watching over your renewal cycles, notice dates, and recurring charges so you stay in 100% control of your budget.
               </p>
             </div>
@@ -179,9 +179,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           <button
             type="button"
             onClick={onOpenOnboarding}
-            className="min-h-[44px] px-4 py-2 rounded-xl bg-white hover:bg-[#FAF8F5] border border-[#E5E0D8] text-xs font-bold text-[#171717] shadow-2xs transition-all flex items-center gap-2 whitespace-nowrap self-start sm:self-auto active:scale-95 cursor-pointer"
+            className="min-h-[44px] px-4 py-2 rounded-xl bg-white hover:bg-[#F5F3ED] border border-[#E5E0D5] text-xs font-bold text-[#1A1A1A] shadow-2xs transition-all flex items-center gap-2 whitespace-nowrap self-start sm:self-auto active:scale-95 cursor-pointer"
           >
-            <span>Replay App Tour</span>
+            <span>Replay Onboarding Tour</span>
           </button>
         </div>
       </div>

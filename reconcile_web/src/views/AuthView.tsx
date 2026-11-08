@@ -3,6 +3,7 @@ import { SignIn, SignUp } from '@clerk/react';
 import { Eye, EyeOff, Loader2, AlertCircle, Mail, Lock, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { AuthService } from '../services/authService';
 import { MascotLogo } from '../components/common/MascotLogo';
+import { ReconcileLogo } from '../components/common/ReconcileLogo';
 
 interface AuthViewProps {
   onAuthenticated: (token: string) => void;
@@ -113,13 +114,13 @@ export const AuthView: React.FC<AuthViewProps> = ({
 
   return (
     <div className="w-full space-y-4 animate-in fade-in duration-200">
-      {/* Brand Header with Vigilant Owl Mascot */}
+      {/* Official Brand Logo Mark */}
       <div className="text-center space-y-1 pb-1">
-        <MascotLogo size={52} className="mx-auto shadow-xs" />
-        <h2 className="text-2xl font-black text-[#171717] tracking-tight">
+        <ReconcileLogo variant="mark" size={52} className="mx-auto" />
+        <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight mt-1">
           {authMode === 'signin' ? 'Welcome Back' : 'Create Free Account'}
         </h2>
-        <p className="text-xs text-[#737373] max-w-xs mx-auto">
+        <p className="text-xs text-[#858477] max-w-xs mx-auto">
           {authMode === 'signin' 
             ? 'Sign in to sync your subscriptions and renewal alerts.' 
             : 'Join Reconcile to track renewals and eliminate surprise charges.'}
@@ -127,14 +128,14 @@ export const AuthView: React.FC<AuthViewProps> = ({
       </div>
 
       {/* Top Segmented Mode Switcher */}
-      <div className="flex bg-[#FAF8F5] p-1 rounded-2xl border border-[#E5E0D8] text-xs font-bold">
+      <div className="flex bg-[#F5F3ED] p-1 rounded-2xl border border-[#E5E0D5] text-xs font-bold">
         <button
           type="button"
           onClick={() => handleSwitchMode('signin')}
           className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
             authMode === 'signin'
-              ? 'bg-white text-[#3D5438] shadow-2xs font-black'
-              : 'text-[#737373] hover:text-[#171717]'
+              ? 'bg-white text-[#1A1A1A] shadow-2xs font-black'
+              : 'text-[#858477] hover:text-[#1A1A1A]'
           }`}
         >
           Sign In
@@ -144,8 +145,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
           onClick={() => handleSwitchMode('signup')}
           className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
             authMode === 'signup'
-              ? 'bg-white text-[#3D5438] shadow-2xs font-black'
-              : 'text-[#737373] hover:text-[#171717]'
+              ? 'bg-white text-[#1A1A1A] shadow-2xs font-black'
+              : 'text-[#858477] hover:text-[#1A1A1A]'
           }`}
         >
           Create Account

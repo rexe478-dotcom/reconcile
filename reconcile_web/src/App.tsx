@@ -20,6 +20,7 @@ import { AuthService, UserProfile } from './services/authService';
 import { SubscriptionApi } from './services/subscriptionApi';
 import { NotificationService } from './services/notificationService';
 import { MascotLogo } from './components/common/MascotLogo';
+import { ReconcileLogo } from './components/common/ReconcileLogo';
 
 // Tabs & Modals
 import { DashboardTab } from './views/DashboardTab';
@@ -227,32 +228,25 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#171717] flex flex-col font-sans selection:bg-[#E2EBD8] selection:text-[#3D5438]">
+    <div className="min-h-screen bg-[#F5F3ED] text-[#1A1A1A] flex flex-col font-sans selection:bg-[#EBF3DF] selection:text-[#3D5438]">
       {/* Toast Feedback Notification Banner */}
       {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-[#171717] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in duration-200">
-          <span className="w-2 h-2 rounded-full bg-[#E2EBD8]" />
+        <div className="fixed top-4 right-4 z-50 bg-[#1A1A1A] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in duration-200">
+          <span className="w-2 h-2 rounded-full bg-[#A5C96B]" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Top Application Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Mark with Vigilant Owl Mascot (NO text inside logo) */}
+          {/* Official Reconcile Brand Logo Lockup */}
           <div 
             onClick={() => setActiveTab('dashboard')}
-            className="flex items-center gap-3 cursor-pointer select-none group"
+            className="flex items-center gap-2 cursor-pointer select-none group"
+            title="Reconcile - Home"
           >
-            <MascotLogo size={38} className="group-hover:shadow-md" />
-            <div>
-              <span className="font-extrabold tracking-[0.2em] text-xs text-[#171717] block">
-                RECONCILE
-              </span>
-              <span className="text-[10px] text-[#737373] hidden sm:block">
-                Know what renews next
-              </span>
-            </div>
+            <ReconcileLogo variant="horizontal" size={34} className="group-hover:opacity-90 transition-opacity" />
           </div>
 
           {/* Desktop Navigation Tabs */}

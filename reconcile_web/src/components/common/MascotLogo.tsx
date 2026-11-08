@@ -1,26 +1,45 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState } from 'react';
+
+export type MascotPose = 'standing' | 'holding-phone' | 'working' | 'excited' | 'thinking' | 'peek';
 
 interface MascotLogoProps {
+  pose?: MascotPose;
   size?: number;
   className?: string;
   interactive?: boolean;
-  variant?: '3d' | '2d'; // Kept for interface backward compatibility
+  alt?: string;
+  variant?: string; // Backward compatibility
 }
 
+const POSE_IMAGES: Record<MascotPose, string> = {
+  standing: './assets/mascot/mascot-standing.png',
+  'holding-phone': './assets/mascot/mascot-holding-phone.png',
+  working: './assets/mascot/mascot-working.png',
+  excited: './assets/mascot/mascot-excited.png',
+  thinking: './assets/mascot/mascot-thinking.png',
+  peek: './assets/mascot/mascot-standing.png',
+};
+
+/**
+ * Reconcile Official Mascot Component
+ * Source of truth: 02_mascot and 05_reference_boards
+ * The official character is a friendly boy with curly black hair, cream hoodie
+ * featuring the Reconcile logo on the chest, black trousers, and green sneakers.
+ */
 export const MascotLogo: React.FC<MascotLogoProps> = ({
-  size = 38,
+  pose = 'standing',
+  size = 48,
   className = '',
   interactive = true,
+  alt = 'Reconcile Mascot',
 }) => {
   const [imageError, setImageError] = useState(false);
-
-  // Single definitive signature mascot across entire app
-  const imageSrc = './mascot.jpg';
+  const imageSrc = POSE_IMAGES[pose] || POSE_IMAGES.standing;
 
   return (
     <div
       style={{ width: size, height: size }}
-      className={`relative shrink-0 rounded-2xl overflow-hidden bg-[#FAF8F5] shadow-xs border border-[#E5E0D8]/80 flex items-center justify-center ${
+      className={`relative shrink-0 rounded-2xl overflow-hidden bg-[#F5F3ED] border border-[#E5E0D5] flex items-center justify-center ${
         interactive
           ? 'hover:scale-108 active:scale-95 transition-transform duration-200 ease-spring cursor-pointer will-change-transform'
           : ''
@@ -30,37 +49,28 @@ export const MascotLogo: React.FC<MascotLogoProps> = ({
       {!imageError ? (
         <img
           src={imageSrc}
-          alt="Reconcile Mascot"
-          className="w-full h-full object-cover select-none"
+          alt={alt}
+          className="w-full h-full object-cover object-top select-none pointer-events-none"
           onError={() => setImageError(true)}
         />
       ) : (
-        /* Vector SVG Fallback (No brand text, purely the friendly geometric owl emblem) */
+        /* Vector Fallback Emblem (Reconcile R Mark) */
         <svg
-          viewBox="0 0 100 100"
+          viewBox="0 0 204 204"
           className="w-full h-full p-1"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Owl Head & Feathers */}
           <path
-            d="M50 14 C30 14 20 28 20 54 C20 74 34 88 50 88 C66 88 80 74 80 54 C80 28 70 14 50 14 Z"
-            fill="#3D5438"
+            d="M52 40h70c42 0 68 25 68 63 0 37-26 62-68 62H98v-43h22c13 0 21-7 21-19s-8-19-21-19H98v96H52z"
+            fill="#1A1A1A"
           />
-          {/* Facial Mask */}
-          <circle cx="38" cy="46" r="14" fill="#FAF8F5" />
-          <circle cx="62" cy="46" r="14" fill="#FAF8F5" />
-          {/* Large Friendly Eyes */}
-          <circle cx="39" cy="46" r="7" fill="#171717" />
-          <circle cx="41" cy="44" r="2.5" fill="#FAF8F5" />
-          <circle cx="61" cy="46" r="7" fill="#171717" />
-          <circle cx="63" cy="44" r="2.5" fill="#FAF8F5" />
-          {/* Beak */}
-          <polygon points="50,52 54,62 46,62" fill="#E9A824" />
-          {/* Belly */}
           <path
-            d="M36 66 C42 63 58 63 64 66 C66 74 60 84 50 84 C40 84 34 74 36 66 Z"
-            fill="#FAF8F5"
+            d="M79 99l25 25 57-62"
+            stroke="#A5C96B"
+            strokeWidth="19"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       )}

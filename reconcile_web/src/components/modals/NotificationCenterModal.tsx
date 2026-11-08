@@ -43,20 +43,18 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-[#FAF8F5] border border-[#E5E0D8] shadow-2xl p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto text-[#171717] spring-dialog"
+        className="relative w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-[#F5F3ED] border border-[#E5E0D5] shadow-2xl p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto text-[#1A1A1A] spring-dialog"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Sheet Drag Handle */}
-        <div className="sm:hidden w-12 h-1.5 bg-[#D5CEBF] rounded-full mx-auto -mt-2 mb-2" />
+        <div className="sm:hidden w-12 h-1.5 bg-[#DAD8D0] rounded-full mx-auto -mt-2 mb-2" />
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D8]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#E2EBD8] text-[#3D5438] flex items-center justify-center font-bold">
-              <Bell className="w-4 h-4" />
-            </div>
+        <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D5]">
+          <div className="flex items-center gap-2.5">
+            <img src="./assets/illustrations/notification.png" alt="Bell" className="w-9 h-9 object-contain shrink-0" />
             <div>
-              <h3 className="font-extrabold text-base text-[#171717]">Notifications</h3>
-              <p className="text-xs text-[#737373]">Renewal Alerts & Permissions</p>
+              <h3 className="font-extrabold text-base text-[#1A1A1A]">Notifications</h3>
+              <p className="text-xs text-[#858477]">Renewal Alerts & Permissions</p>
             </div>
           </div>
           <button

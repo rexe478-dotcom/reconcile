@@ -13,6 +13,7 @@ import {
 import { Subscription, SubscriptionStatus } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
 import { InsightsCalculator } from '../services/insightsCalculator';
+import { MascotLogo } from '../components/common/MascotLogo';
 
 interface SubscriptionsTabProps {
   subscriptions: Subscription[];
@@ -298,10 +299,10 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
         })}
 
         {filteredSubscriptions.length === 0 && (
-          <div className="p-12 text-center bg-white rounded-3xl border border-[#E5E0D8] space-y-3">
-            <CreditCard className="w-10 h-10 text-[#737373] mx-auto opacity-50" />
-            <h3 className="font-bold text-base text-[#171717]">No subscriptions found</h3>
-            <p className="text-xs text-[#737373] max-w-sm mx-auto">
+          <div className="p-12 text-center bg-white rounded-3xl border border-[#E5E0D5] space-y-3">
+            <MascotLogo pose="thinking" size={68} className="mx-auto" />
+            <h3 className="font-bold text-base text-[#1A1A1A]">No subscriptions found</h3>
+            <p className="text-xs text-[#858477] max-w-sm mx-auto">
               No recurring payments match your search or filter. Try clearing filters or add a new subscription.
             </p>
           </div>

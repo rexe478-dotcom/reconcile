@@ -62,17 +62,17 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Header with Export Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#E5E0D8]">
-        <div>
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-[#3D5438]" />
-            <h1 className="text-2xl font-black text-[#171717] tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#E5E0D5] shadow-xs">
+        <div className="flex items-center gap-3">
+          <img src="./assets/illustrations/calendar.png" alt="Calendar" className="w-11 h-11 object-contain shrink-0" />
+          <div>
+            <h1 className="text-2xl font-black text-[#1A1A1A] tracking-tight">
               Renewal Calendar & Agenda
             </h1>
+            <p className="text-xs text-[#858477] mt-0.5">
+              Independent schedule tracking for every subscription. Export to Apple Calendar, Google Calendar, or Outlook.
+            </p>
           </div>
-          <p className="text-xs text-[#737373] mt-1">
-            Independent schedule tracking for every subscription. Export to Apple Calendar, Google Calendar, or Outlook.
-          </p>
         </div>
 
         <button

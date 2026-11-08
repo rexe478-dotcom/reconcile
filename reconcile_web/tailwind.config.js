@@ -7,23 +7,29 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#FAF8F5',
+        background: '#F5F3ED',
+        paper: '#E5E0D5',
         surface: {
           DEFAULT: '#FFFFFF',
-          subtle: '#F5F2EA',
-          card: '#F0ECE4',
-          hover: '#EAE5DB',
+          subtle: '#FAF8F5',
+          card: '#F5F3ED',
+          hover: '#E5E0D5',
         },
         border: {
-          DEFAULT: '#E5E0D8',
-          subtle: '#EDE8DF',
+          DEFAULT: '#E5E0D5',
+          subtle: '#DAD8D0',
+        },
+        ink: {
+          DEFAULT: '#1A1A1A',
+          muted: '#858477',
         },
         accent: {
-          DEFAULT: '#3D5438',
-          hover: '#32462E',
-          muted: 'rgba(61, 84, 56, 0.12)',
-          surface: '#E2EBD8',
-          light: '#D6E2CE',
+          DEFAULT: '#A5C96B',
+          hover: '#92B559',
+          dark: '#3D5438',
+          muted: 'rgba(165, 201, 107, 0.18)',
+          surface: '#EBF3DF',
+          light: '#E2EBD8',
         },
         badge: {
           activeBg: '#E2EBD8',
@@ -52,7 +58,7 @@ export default {
         'spring-smooth': 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
       fontFamily: {
-        sans: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       }
     },
   },

@@ -1,13 +1,13 @@
 {
-  "name": "Reconcile - Subscription Tracker",
+  "name": "Reconcile",
   "short_name": "Reconcile",
-  "description": "Know what renews next. Track subscriptions, get timely reminders, and manage renewals seamlessly.",
+  "description": "Never miss a subscription again. Track subscriptions, get timely reminders, and manage renewals seamlessly.",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#FAF8F5",
-  "theme_color": "#3D5438",
+  "background_color": "#F5F3ED",
+  "theme_color": "#F5F3ED",
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
