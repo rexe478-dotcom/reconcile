@@ -1,26 +1,18 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState } from 'react';
 import { 
-  Cloud, 
   CheckCircle2, 
   Bell, 
   Mail, 
   Download, 
   Trash2, 
-  ShieldCheck, 
-  ExternalLink,
-  Activity,
   LogOut,
   User as UserIcon,
   Sparkles,
-  ChevronDown,
-  Coins,
-  Globe,
-  Palette
+  Globe
 } from 'lucide-react';
 import { UserProfile } from '../services/authService';
 import { Subscription } from '../types/subscription';
 import { downloadCalendarIcs } from '../services/calendarExportService';
-import { getApiBaseUrl, setCustomApiUrl } from '../services/apiClient';
 import { MascotLogo } from '../components/common/MascotLogo';
 
 interface SettingsTabProps {
@@ -46,10 +38,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   onResetDemo,
   showToast,
 }) => {
-  const [pingStatus, setPingStatus] = useState<string | null>(null);
-  const [isPinging, setIsPinging] = useState(false);
-  const [backendUrl, setBackendUrl] = useState(getApiBaseUrl());
-
   // Mascot variant preference (3D Duolingo vs 2D Flat Vector)
   const [mascotVariant, setMascotVariant] = useState<'3d' | '2d'>(() => {
     return (localStorage.getItem('reconcile_mascot_variant') as '3d' | '2d') || '3d';
@@ -81,30 +69,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
     setAlertDays(days);
     localStorage.setItem('reconcile_pref_alert_days', days.toString());
     showToast(`Alerts set to ${days} day(s) before renewal.`);
-  };
-
-  const handlePingBackend = async () => {
-    setIsPinging(true);
-    const start = Date.now();
-    try {
-      const res = await fetch(`${backendUrl}/health`);
-      const data = await res.json();
-      const latency = Date.now() - start;
-      if (res.ok && data.status === 'healthy') {
-        setPingStatus(`Healthy (${latency}ms) \u2014 DB: ${data.database || 'connected'}`);
-      } else {
-        setPingStatus(`Degraded (${latency}ms)`);
-      }
-    } catch {
-      setPingStatus('Offline / Unreachable');
-    } finally {
-      setIsPinging(false);
-    }
-  };
-
-  const handleSaveApiUrl = () => {
-    setCustomApiUrl(backendUrl);
-    showToast(`Updated Backend Server URL.`);
   };
 
   const handleExportCSV = () => {
@@ -170,7 +134,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 transition-colors self-start sm:self-auto active:scale-95"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 transition-colors self-start sm:self-auto active:scale-95 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
@@ -190,7 +154,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
             <button
               onClick={onOpenAuth}
-              className="px-5 py-2.5 rounded-xl bg-[#3D5438] hover:bg-[#32462E] active:scale-95 text-white text-xs font-bold shadow-xs transition-all self-start sm:self-auto whitespace-nowrap"
+              className="px-5 py-2.5 rounded-xl bg-[#3D5438] hover:bg-[#32462E] active:scale-95 text-white text-xs font-bold shadow-xs transition-all self-start sm:self-auto whitespace-nowrap cursor-pointer"
             >
               Sign In / Create Account
             </button>
@@ -285,7 +249,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 key={c.code}
                 onClick={() => handleSelectCurrency(c.code)}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   defaultCurrency === c.code
                     ? 'border-[#3D5438] bg-[#FAF8F5] text-[#3D5438] shadow-2xs'
                     : 'border-[#E5E0D8] text-[#737373] hover:text-[#171717] hover:border-[#D1C9BE]'
@@ -312,7 +276,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 key={a.days}
                 onClick={() => handleSelectAlertDays(a.days)}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-bold text-center transition-all ${
+                className={`py-2.5 px-3 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${
                   alertDays === a.days
                     ? 'border-[#3D5438] bg-[#FAF8F5] text-[#3D5438] shadow-2xs'
                     : 'border-[#E5E0D8] text-[#737373] hover:text-[#171717] hover:border-[#D1C9BE]'
@@ -406,65 +370,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Advanced Infrastructure & Diagnostics (Discreet Accordion) */}
-      <details className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#E5E0D8] space-y-3 group">
-        <summary className="text-xs font-bold text-[#737373] hover:text-[#171717] cursor-pointer flex items-center justify-between select-none">
-          <span className="flex items-center gap-2">
-            <Cloud className="w-3.5 h-3.5 text-[#737373]" />
-            <span>Developer & Cloud Infrastructure (Advanced)</span>
-          </span>
-          <ChevronDown className="w-4 h-4 text-[#737373] transition-transform group-open:rotate-180" />
-        </summary>
-
-        <div className="pt-3 space-y-3 text-xs border-t border-[#E5E0D8]/60">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <div className="text-xs font-bold text-[#171717]">Backend API Host</div>
-              <div className="text-[11px] text-[#737373]">Live FastAPI service deployed on Render</div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePingBackend}
-                disabled={isPinging}
-                className="flex items-center gap-1 px-3 py-1 rounded-lg bg-white border border-[#E5E0D8] text-[11px] font-bold text-[#171717] hover:bg-[#F0ECE4] transition-colors"
-              >
-                <Activity className={`w-3 h-3 text-[#3D5438] ${isPinging ? 'animate-spin' : ''}`} />
-                <span>{isPinging ? 'Testing...' : 'Test Connection'}</span>
-              </button>
-              {pingStatus && (
-                <span className="text-[11px] font-bold text-[#3D5438] bg-[#E2EBD8] px-2 py-0.5 rounded-md">
-                  {pingStatus}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={backendUrl}
-              onChange={(e) => setBackendUrl(e.target.value)}
-              className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-[#E5E0D8] text-xs font-mono text-[#171717] focus:outline-hidden focus:border-[#3D5438]"
-            />
-            <button
-              onClick={handleSaveApiUrl}
-              className="px-3.5 py-1.5 rounded-xl bg-[#3D5438] text-white text-xs font-bold hover:bg-[#32462E] transition-colors"
-            >
-              Save
-            </button>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-[#E2EBD8]/40 border border-[#E2EBD8] flex items-center justify-between text-[11px]">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#3D5438]" />
-              <span className="font-semibold text-[#171717]">Database: Neon Serverless PostgreSQL</span>
-            </div>
-            <span className="font-bold text-[#3D5438]">Free Tier Connected</span>
-          </div>
-        </div>
-      </details>
     </div>
   );
 };
