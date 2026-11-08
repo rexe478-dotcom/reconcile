@@ -12,7 +12,7 @@ import {
   CheckCircle2, 
   AlertCircle 
 } from 'lucide-react';
-import { Subscription } from '../types/subscription';
+import { Subscription, SubscriptionStatus } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
 
 interface SubscriptionsTabProps {
@@ -31,7 +31,7 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
   onToggleReminder,
 }) => {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'soon' | 'cancelled'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'soon' | 'needs_review' | 'cancelled'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   const getDaysLeft = (dateStr: string) => {
@@ -42,11 +42,41 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
     return Math.max(0, diff);
   };
 
+  const formatStatus = (status: SubscriptionStatus | string) => {
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'needs_review':
+        return 'Needs Review';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'paused':
+        return 'Paused';
+      default:
+        return status;
+    }
+  };
+
+  const getStatusBadgeClass = (status: SubscriptionStatus | string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-[#E2EBD8] text-[#3D5438]';
+      case 'needs_review':
+        return 'bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs';
+      case 'cancelled':
+        return 'bg-red-50 text-red-700 border border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
   const filteredSubscriptions = useMemo(() => {
     let result = [...subscriptions];
 
     if (statusFilter === 'active') {
       result = result.filter((s) => s.status === 'active');
+    } else if (statusFilter === 'needs_review') {
+      result = result.filter((s) => s.status === 'needs_review');
     } else if (statusFilter === 'cancelled') {
       result = result.filter((s) => s.status === 'cancelled');
     } else if (statusFilter === 'soon') {
@@ -78,37 +108,37 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
           <h1 className="text-2xl sm:text-3xl font-black text-[#171717] tracking-tight">
             Subscriptions Directory
           </h1>
-          <p className="text-xs sm:text-sm text-[#737373] mt-0.5">
-            Manage renewals, toggle notifications, and perform verified official cancellations.
+          <p className="text-xs sm:text-sm text-[#737373] mt-1">
+            {subscriptions.length} active recurring commitments &middot; Automated renewals tracked
           </p>
         </div>
 
         <button
           onClick={onAddSubscription}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold shadow-xs transition-colors self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#3D5438] hover:bg-[#32462E] active:scale-95 text-white text-xs font-bold shadow-xs transition-all self-start sm:self-auto cursor-pointer"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Add Subscription</span>
+          <Plus className="w-4 h-4" />
+          <span>New Subscription</span>
         </button>
       </div>
 
-      {/* Search & Filter Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-[#E5E0D8]">
+      {/* Search & Filter Toolbar */}
+      <div className="p-3 bg-white rounded-2xl border border-[#E5E0D8] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#737373] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#737373]" />
           <input
             type="text"
-            placeholder="Search subscriptions, plans, categories..."
+            placeholder="Search subscriptions, plans, or categories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#FAF8F5] border border-[#E5E0D8] text-xs text-[#171717] placeholder:text-[#A3A3A3] focus:outline-hidden focus:border-[#3D5438]"
+            className="w-full pl-9 pr-4 py-2 bg-[#FAF8F5] border border-[#E5E0D8] rounded-xl text-xs text-[#171717] placeholder:text-[#737373] focus:outline-hidden focus:border-[#3D5438]"
           />
         </div>
 
-        {/* Filter Chips & View Mode */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-          <div className="flex items-center gap-1">
+        {/* Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          <div className="flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-xl border border-[#E5E0D8]">
             <button
               onClick={() => setStatusFilter('all')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${
@@ -138,6 +168,16 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
               }`}
             >
               Due Soon (&le;7d)
+            </button>
+            <button
+              onClick={() => setStatusFilter('needs_review')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${
+                statusFilter === 'needs_review'
+                  ? 'bg-amber-600 text-white'
+                  : 'bg-[#FAF8F5] hover:bg-amber-50 text-amber-800'
+              }`}
+            >
+              Needs Review
             </button>
             <button
               onClick={() => setStatusFilter('cancelled')}
@@ -186,30 +226,24 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
               <div
                 key={sub.id}
                 onClick={() => onSelectSubscription(sub)}
-                className="p-5 rounded-3xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/50 hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
+                className="p-5 rounded-3xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/50 hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between space-y-4 group overflow-hidden"
               >
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <BrandIcon providerName={sub.providerName} size={44} className="shadow-2xs" />
-                    <div>
-                      <h3 className="text-base font-black text-[#171717] group-hover:text-[#3D5438] transition-colors">
+                {/* Header with Title and Properly Constrained Status Badge */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <BrandIcon providerName={sub.providerName} size={44} className="shadow-2xs shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-black text-[#171717] group-hover:text-[#3D5438] transition-colors truncate">
                         {sub.providerName}
                       </h3>
-                      <p className="text-xs text-[#737373] truncate max-w-[150px]">
+                      <p className="text-xs text-[#737373] truncate">
                         {sub.planName || sub.category}
                       </p>
                     </div>
                   </div>
 
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                    sub.status === 'active' 
-                      ? 'bg-[#E2EBD8] text-[#3D5438]' 
-                      : sub.status === 'cancelled'
-                      ? 'bg-red-50 text-red-700'
-                      : 'bg-amber-50 text-amber-800'
-                  }`}>
-                    {sub.status}
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 whitespace-nowrap tracking-normal ${getStatusBadgeClass(sub.status)}`}>
+                    {formatStatus(sub.status)}
                   </span>
                 </div>
 
@@ -283,16 +317,17 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-[#FAF8F5] border-b border-[#E5E0D8] text-[11px] font-bold text-[#737373] uppercase tracking-wider">
-                  <th className="py-3 px-4">Provider / Plan</th>
-                  <th className="py-3 px-4">Cadence</th>
-                  <th className="py-3 px-4">Amount</th>
+                  <th className="py-3 px-4">Provider</th>
+                  <th className="py-3 px-4">Category</th>
+                  <th className="py-3 px-4">Cost</th>
+                  <th className="py-3 px-4">Billing</th>
                   <th className="py-3 px-4">Next Renewal</th>
                   <th className="py-3 px-4">Reminders</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5E0D8]">
+              <tbody className="divide-y divide-[#E5E0D8]/60">
                 {filteredSubscriptions.map((sub) => {
                   const days = getDaysLeft(sub.nextRenewalDate);
                   return (
@@ -301,28 +336,34 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
                       onClick={() => onSelectSubscription(sub)}
                       className="hover:bg-[#FAF8F5] transition-colors cursor-pointer"
                     >
-                      <td className="py-3.5 px-4 flex items-center gap-3">
-                        <BrandIcon providerName={sub.providerName} size={34} />
-                        <div>
-                          <div className="font-bold text-sm text-[#171717]">{sub.providerName}</div>
-                          <div className="text-[11px] text-[#737373]">{sub.planName || 'Standard'}</div>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <BrandIcon providerName={sub.providerName} size={32} />
+                          <div>
+                            <div className="font-bold text-[#171717]">{sub.providerName}</div>
+                            <div className="text-[11px] text-[#737373]">{sub.planName}</div>
+                          </div>
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 text-[#737373] capitalize font-medium">
-                        {sub.interval}
+                      <td className="py-3.5 px-4 text-[#737373] capitalize">
+                        {sub.category}
                       </td>
 
-                      <td className="py-3.5 px-4 font-bold text-sm text-[#171717]">
+                      <td className="py-3.5 px-4 font-bold text-[#171717]">
                         {'\u20A6'}{sub.amount.toLocaleString()}
                       </td>
 
+                      <td className="py-3.5 px-4 text-[#737373] capitalize">
+                        {sub.interval}
+                      </td>
+
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-[#171717]">{sub.nextRenewalDate}</div>
-                        <div className={`text-[11px] font-semibold ${
-                          days <= 2 ? 'text-red-600' : 'text-[#3D5438]'
+                        <div className="font-semibold text-[#171717]">{sub.nextRenewalDate}</div>
+                        <div className={`text-[10px] font-bold ${
+                          days <= 2 ? 'text-red-600' : days <= 7 ? 'text-amber-700' : 'text-[#3D5438]'
                         }`}>
-                          {days === 0 ? 'Today' : `In ${days} days`}
+                          {days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days}d`}
                         </div>
                       </td>
 
@@ -332,7 +373,7 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
                             e.stopPropagation();
                             onToggleReminder(sub.id);
                           }}
-                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             sub.remindersEnabled ? 'bg-[#E2EBD8] text-[#3D5438]' : 'bg-gray-100 text-gray-500'
                           }`}
                         >
@@ -341,10 +382,8 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          sub.status === 'active' ? 'bg-[#E2EBD8] text-[#3D5438]' : 'bg-red-50 text-red-700'
-                        }`}>
-                          {sub.status}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 whitespace-nowrap ${getStatusBadgeClass(sub.status)}`}>
+                          {formatStatus(sub.status)}
                         </span>
                       </td>
 
@@ -365,26 +404,6 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {filteredSubscriptions.length === 0 && (
-        <div className="p-12 text-center bg-white rounded-3xl border border-[#E5E0D8] space-y-3">
-          <AlertCircle className="w-8 h-8 text-[#737373] mx-auto" />
-          <h3 className="text-base font-bold text-[#171717]">No subscriptions found</h3>
-          <p className="text-xs text-[#737373] max-w-sm mx-auto">
-            No active subscriptions matched "{search}" or the selected filter.
-          </p>
-          <button
-            onClick={() => {
-              setSearch('');
-              setStatusFilter('all');
-            }}
-            className="px-4 py-2 rounded-xl bg-[#F0ECE4] text-xs font-bold text-[#171717] hover:bg-[#E5E0D8] transition-colors"
-          >
-            Clear Filters
-          </button>
         </div>
       )}
     </div>
