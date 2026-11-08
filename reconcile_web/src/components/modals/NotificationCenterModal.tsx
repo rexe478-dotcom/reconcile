@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { X, Bell, BellRing, Check, Calendar, AlertTriangle, ChevronRight } from 'lucide-react';
 import { Subscription } from '../../types/subscription';
 import { NotificationService } from '../../services/notificationService';
@@ -37,8 +37,16 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md rounded-3xl bg-[#FAF8F5] border border-[#E5E0D8] shadow-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto text-[#171717]">
+    <div 
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div 
+        className="relative w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-[#FAF8F5] border border-[#E5E0D8] shadow-2xl p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto text-[#171717] spring-dialog"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Mobile Sheet Drag Handle */}
+        <div className="sm:hidden w-12 h-1.5 bg-[#D5CEBF] rounded-full mx-auto -mt-2 mb-2" />
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D8]">
           <div className="flex items-center gap-2">

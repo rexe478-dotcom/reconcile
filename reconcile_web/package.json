@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "cross-env ROLLUP_NATIVE=false vite",
     "build": "tsc -b && cross-env ROLLUP_NATIVE=false vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "audit:design": "node scripts/audit_design.cjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

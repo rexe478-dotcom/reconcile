@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { X, ShieldCheck, Mail, AlertCircle, CheckCircle2, Lock, Key, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { Subscription } from '../../types/subscription';
 import { RealGmailService } from '../../services/realGmailService';
@@ -71,11 +71,18 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+    <div 
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div 
-        className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-[#E5E0D8] overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#E5E0D8] overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh] spring-dialog"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Sheet Drag Handle */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-[#FAF8F5]">
+          <div className="w-12 h-1.5 bg-[#D5CEBF] rounded-full" />
+        </div>
         {/* Header */}
         <div className="p-6 bg-[#FAF8F5] border-b border-[#E5E0D8] flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -159,7 +166,7 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
                         <div>
                           <div className="text-sm font-bold text-[#171717]">{sub.providerName}</div>
                           <div className="text-xs text-[#737373]">
-                            ?{sub.amount.toLocaleString()} • Next renewal: {sub.nextRenewalDate}
+                            ?{sub.amount.toLocaleString()} ï¿½ Next renewal: {sub.nextRenewalDate}
                           </div>
                         </div>
                       </div>

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { X, Calendar, Edit3, Trash2, ShieldAlert, Bell, ExternalLink, CheckCircle2, Clock, DollarSign, Tag, Globe } from 'lucide-react';
 import { Subscription } from '../../types/subscription';
 import { BrandIcon } from '../common/BrandIcon';
@@ -52,26 +52,36 @@ export const SubscriptionDetailsModal: React.FC<SubscriptionDetailsModalProps> =
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+    <div 
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div 
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#E5E0D8] overflow-hidden flex flex-col max-h-[90vh] spring-dialog"
+        className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#E5E0D8] overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh] spring-dialog"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Sheet Drag Handle */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-[#FAF8F5]">
+          <div className="w-12 h-1.5 bg-[#D5CEBF] rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="p-6 bg-[#FAF8F5] border-b border-[#E5E0D8] flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <BrandIcon providerName={subscription.providerName} size={54} className="shadow-xs" />
+        <div className="p-5 sm:p-6 bg-[#FAF8F5] border-b border-[#E5E0D8] flex items-start justify-between">
+          <div className="flex items-center gap-3.5 sm:gap-4">
+            <BrandIcon providerName={subscription.providerName} size={50} className="shadow-xs shrink-0" />
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black text-[#171717] tracking-tight">{subscription.providerName}</h3>
-                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider ${
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-black text-[#171717] tracking-tight">{subscription.providerName}</h3>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold ${
                   subscription.status === 'active' 
                     ? 'bg-[#E2EBD8] text-[#3D5438]' 
+                    : subscription.status === 'needs_review'
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
                     : subscription.status === 'cancelled'
                     ? 'bg-red-50 text-red-700 border border-red-200'
-                    : 'bg-amber-50 text-amber-800'
+                    : 'bg-gray-100 text-gray-700'
                 }`}>
-                  {subscription.status}
+                  {subscription.status === 'needs_review' ? 'Needs Review' : subscription.status === 'active' ? 'Active' : subscription.status === 'cancelled' ? 'Cancelled' : subscription.status}
                 </span>
               </div>
               <p className="text-xs text-[#737373] font-medium mt-0.5">
