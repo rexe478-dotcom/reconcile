@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TestSprite/testsprite-cli/v0.16.0/schemas/plan.schema.json",
+  "projectId": "ec973c91-7b3a-4029-a087-d412c3359a26",
+  "type": "frontend",
+  "name": "Dashboard and Navigation Smoke Test",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to the home page"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the header displays the RECONCILE brand mark"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the dashboard overview and subscription summary metrics are rendered"
+    },
+    {
+      "type": "action",
+      "description": "Click the Subscriptions tab in the navigation bar"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the subscriptions ledger list is displayed with provider rows"
+    }
+  ]
+}
