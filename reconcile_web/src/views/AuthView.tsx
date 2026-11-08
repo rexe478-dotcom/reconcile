@@ -7,11 +7,45 @@ import { MascotLogo } from '../components/common/MascotLogo';
 interface AuthViewProps {
   onAuthenticated: (token: string) => void;
   onClose?: () => void;
+  initialMode?: 'signin' | 'signup';
 }
 
-export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) => {
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+export const AuthView: React.FC<AuthViewProps> = ({ 
+  onAuthenticated, 
+  onClose,
+  initialMode = 'signin'
+}) => {
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('signup')) {
+      return 'signup';
+    }
+    return initialMode;
+  });
+
   const [showLegacyForm, setShowLegacyForm] = useState(false);
+
+  // Sync authMode when Clerk triggers internal hash changes (#signup / #signin)
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      if (typeof window === 'undefined') return;
+      if (window.location.hash.includes('signup')) {
+        setAuthMode('signup');
+      } else if (window.location.hash.includes('signin')) {
+        setAuthMode('signin');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const handleSwitchMode = (mode: 'signin' | 'signup') => {
+    setAuthMode(mode);
+    if (typeof window !== 'undefined') {
+      window.location.hash = mode === 'signup' ? '#signup' : '#signin';
+    }
+  };
 
   // Legacy Direct API Auth State
   const [legacyMode, setLegacyMode] = useState<'login' | 'register'>('login');
@@ -80,18 +114,46 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) 
   return (
     <div className="w-full space-y-4 animate-in fade-in duration-200">
       {/* Brand Header with Vigilant Owl Mascot */}
-      <div className="text-center space-y-1.5 pb-1">
+      <div className="text-center space-y-1 pb-1">
         <MascotLogo size={52} className="mx-auto shadow-xs" />
         <h2 className="text-2xl font-black text-[#171717] tracking-tight">
-          {authMode === 'signin' ? 'Welcome to Reconcile' : 'Create Free Account'}
+          {authMode === 'signin' ? 'Welcome Back' : 'Create Free Account'}
         </h2>
         <p className="text-xs text-[#737373] max-w-xs mx-auto">
-          Sync subscriptions across all devices and receive renewal reminders.
+          {authMode === 'signin' 
+            ? 'Sign in to sync your subscriptions and renewal alerts.' 
+            : 'Join Reconcile to track renewals and eliminate surprise charges.'}
         </p>
       </div>
 
+      {/* Top Segmented Mode Switcher */}
+      <div className="flex bg-[#FAF8F5] p-1 rounded-2xl border border-[#E5E0D8] text-xs font-bold">
+        <button
+          type="button"
+          onClick={() => handleSwitchMode('signin')}
+          className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
+            authMode === 'signin'
+              ? 'bg-white text-[#3D5438] shadow-2xs font-black'
+              : 'text-[#737373] hover:text-[#171717]'
+          }`}
+        >
+          Sign In
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSwitchMode('signup')}
+          className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
+            authMode === 'signup'
+              ? 'bg-white text-[#3D5438] shadow-2xs font-black'
+              : 'text-[#737373] hover:text-[#171717]'
+          }`}
+        >
+          Create Account
+        </button>
+      </div>
+
       {/* Primary Auth: Clerk Seamless Google & Email Authentication */}
-      <div className="w-full flex justify-center">
+      <div className="w-full flex justify-center min-h-[320px]">
         {authMode === 'signin' ? (
           <SignIn
             routing="hash"
@@ -105,18 +167,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) 
             signInUrl="#signin"
           />
         )}
-      </div>
-
-      {/* Switch between Sign In and Sign Up tabs */}
-      <div className="flex justify-center text-xs text-[#737373] gap-1.5 pt-1">
-        <span>{authMode === 'signin' ? "Don't have an account?" : 'Already have an account?'}</span>
-        <button
-          type="button"
-          onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
-          className="text-[#3D5438] font-bold hover:underline cursor-pointer"
-        >
-          {authMode === 'signin' ? 'Sign up' : 'Sign in'}
-        </button>
       </div>
 
       {/* Optional Accordion: Legacy Backend Password Authentication */}
