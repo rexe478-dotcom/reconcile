@@ -155,7 +155,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) 
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E5E0D8] text-xs text-[#171717] placeholder:text-[#A3A3A3] focus:outline-hidden focus:border-[#3D5438] focus:ring-1 focus:ring-[#3D5438] transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E5E0D8] text-xs text-[#171717] placeholder:text-[#A3A3A3] focus:outline-none focus:border-[#3D5438] focus:ring-1 focus:ring-[#3D5438] transition-all"
             />
           </div>
         </div>
@@ -171,7 +171,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated, onClose }) 
               placeholder={mode === 'register' ? 'At least 6 characters' : 'Enter your password'}
               required
               minLength={6}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white border border-[#E5E0D8] text-xs text-[#171717] placeholder:text-[#A3A3A3] focus:outline-hidden focus:border-[#3D5438] focus:ring-1 focus:ring-[#3D5438] transition-all"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white border border-[#E5E0D8] text-xs text-[#171717] placeholder:text-[#A3A3A3] focus:outline-none focus:border-[#3D5438] focus:ring-1 focus:ring-[#3D5438] transition-all"
             />
             <button
               type="button"

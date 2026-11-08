@@ -1,8 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { X, Bell, BellRing, Check, Calendar, AlertTriangle, ChevronRight } from 'lucide-react';
 import { Subscription } from '../../types/subscription';
 import { NotificationService } from '../../services/notificationService';
 import { BrandIcon } from '../common/BrandIcon';
+import { InsightsCalculator } from '../../services/insightsCalculator';
 
 interface NotificationCenterModalProps {
   isOpen: boolean;
@@ -60,7 +61,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] btn-tactile-sm"
           >
             <X className="w-4 h-4" />
           </button>
@@ -76,10 +77,10 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
             <span
               className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 permission === 'granted'
-                  ? 'bg-[#E2EBD8] text-[#3D5438]'
+                  ? 'bg-[#E2EBD8] text-[#3D5438] border border-[#3D5438]/20'
                   : permission === 'denied'
-                  ? 'bg-red-50 text-red-600'
-                  : 'bg-amber-50 text-amber-700'
+                  ? 'bg-red-50 text-red-600 border border-red-200'
+                  : 'bg-amber-50 text-amber-700 border border-amber-200'
               }`}
             >
               {permission === 'granted'
@@ -102,7 +103,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
             <button
               onClick={handleEnableNotifications}
               disabled={isRequesting}
-              className="w-full py-2 px-3 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold transition-all shadow-xs"
+              className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold shadow-xs btn-tactile"
             >
               {isRequesting ? 'Requesting...' : 'Enable Browser Notifications'}
             </button>
@@ -133,7 +134,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                         onClose();
                       }
                     }}
-                    className="p-3 bg-white hover:bg-[#FAF8F5] rounded-2xl border border-[#E5E0D8] flex items-center justify-between cursor-pointer transition-colors"
+                    className="p-3 bg-white hover:bg-[#FAF8F5] rounded-2xl border border-[#E5E0D8] flex items-center justify-between cursor-pointer card-lift"
                   >
                     <div className="flex items-center gap-3">
                       <BrandIcon providerName={alert.providerName} size={34} />
@@ -150,9 +151,8 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#171717]">
-                        {alert.currency}
-                        {alert.amount.toLocaleString()}
+                      <span className="text-xs font-black text-[#171717] tabular-nums">
+                        {InsightsCalculator.formatCurrency(alert.amount, alert.currency)}
                       </span>
                       <ChevronRight className="w-3.5 h-3.5 text-[#737373]" />
                     </div>

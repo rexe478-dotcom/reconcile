@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Sparkles
 } from 'lucide-react';
+import { MascotLogo } from '../components/common/MascotLogo';
 
 interface LandingPageViewProps {
   onLaunchApp: () => void;
@@ -101,11 +102,9 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onLaunchApp })
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#E5E0D8]/60 px-4 sm:px-8 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          {/* Brand Logo */}
+          {/* Brand Logo with Owl Mascot */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#3D5438] flex items-center justify-center text-white font-black text-sm shadow-sm">
-              R
-            </div>
+            <MascotLogo size={36} className="shadow-xs" />
             <span className="font-extrabold tracking-[0.2em] text-sm text-[#171717]">
               RECONCILE
             </span>
@@ -241,9 +240,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onLaunchApp })
               {/* Phone Header */}
               <div className="px-5 pt-3 pb-2 flex items-center justify-between border-b border-[#E5E0D8]/40">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded-md bg-[#3D5438] flex items-center justify-center text-white font-black text-[10px]">
-                    R
-                  </div>
+                  <MascotLogo size={22} interactive={false} />
                   <span className="font-extrabold tracking-[0.18em] text-[10px] text-[#171717]">
                     RECONCILE
                   </span>

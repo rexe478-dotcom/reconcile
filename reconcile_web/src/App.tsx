@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Plus, 
   Bell, 
@@ -224,7 +224,7 @@ export const App: React.FC = () => {
           <nav className="hidden md:flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-2xl border border-[#E5E0D8]">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold btn-tactile-sm ${
                 activeTab === 'dashboard'
                   ? 'bg-white text-[#3D5438] shadow-2xs'
                   : 'text-[#737373] hover:text-[#171717]'
@@ -236,7 +236,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('subscriptions')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold btn-tactile-sm ${
                 activeTab === 'subscriptions'
                   ? 'bg-white text-[#3D5438] shadow-2xs'
                   : 'text-[#737373] hover:text-[#171717]'
@@ -248,7 +248,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('calendar')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold btn-tactile-sm ${
                 activeTab === 'calendar'
                   ? 'bg-white text-[#3D5438] shadow-2xs'
                   : 'text-[#737373] hover:text-[#171717]'
@@ -260,7 +260,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold btn-tactile-sm ${
                 activeTab === 'settings'
                   ? 'bg-white text-[#3D5438] shadow-2xs'
                   : 'text-[#737373] hover:text-[#171717]'
@@ -276,7 +276,7 @@ export const App: React.FC = () => {
             {isAuthenticated ? (
               <button 
                 onClick={() => setActiveTab('settings')}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E2EBD8]/60 hover:bg-[#E2EBD8] text-[#3D5438] border border-[#E2EBD8] text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+                className="min-h-[44px] flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E2EBD8]/60 hover:bg-[#E2EBD8] text-[#3D5438] border border-[#E2EBD8] text-xs font-bold shadow-2xs btn-tactile"
                 title={`Cloud Connected: ${currentUser?.email}`}
               >
                 <div className="w-5 h-5 rounded-full bg-[#3D5438] text-white flex items-center justify-center text-[10px] font-black">
@@ -287,7 +287,7 @@ export const App: React.FC = () => {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold transition-all active:scale-95 shadow-xs cursor-pointer"
+                className="min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold shadow-xs btn-tactile"
               >
                 <UserIcon className="w-3.5 h-3.5" />
                 <span>Sign In</span>
@@ -350,11 +350,11 @@ export const App: React.FC = () => {
       </main>
 
       {/* Mobile Fixed Bottom Navigation Bar (md:hidden) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E0D8] px-3 py-2 flex items-center justify-around safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E0D8] px-3 py-1 flex items-center justify-around safe-area-bottom">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
-            activeTab === 'dashboard' ? 'text-[#3D5438]' : 'text-[#737373]'
+          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+            activeTab === 'dashboard' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <LayoutDashboard className="w-5 h-5" />
@@ -363,8 +363,8 @@ export const App: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('subscriptions')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
-            activeTab === 'subscriptions' ? 'text-[#3D5438]' : 'text-[#737373]'
+          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+            activeTab === 'subscriptions' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <CreditCard className="w-5 h-5" />
@@ -373,8 +373,8 @@ export const App: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('calendar')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
-            activeTab === 'calendar' ? 'text-[#3D5438]' : 'text-[#737373]'
+          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+            activeTab === 'calendar' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <CalendarIcon className="w-5 h-5" />
@@ -383,8 +383,8 @@ export const App: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
-            activeTab === 'settings' ? 'text-[#3D5438]' : 'text-[#737373]'
+          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+            activeTab === 'settings' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <SettingsIcon className="w-5 h-5" />

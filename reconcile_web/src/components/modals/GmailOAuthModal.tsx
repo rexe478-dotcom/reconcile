@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { X, ShieldCheck, Mail, AlertCircle, CheckCircle2, Lock, Key, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { Subscription } from '../../types/subscription';
 import { RealGmailService } from '../../services/realGmailService';
@@ -98,7 +98,7 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-[#EAE6DD] text-[#737373] transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-full hover:bg-[#EAE6DD] text-[#737373] hover:text-[#171717] transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#3D5438]/30"
           >
             <X className="w-5 h-5" />
           </button>
@@ -119,7 +119,7 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
             <button
               onClick={handleConnectAndScan}
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl bg-[#3D5438] hover:bg-[#32462E] disabled:bg-gray-300 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2"
+              className="w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-[#3D5438] hover:bg-[#32462E] active:scale-95 disabled:bg-gray-300 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#3D5438]/30 focus-visible:ring-offset-2"
             >
               {isLoading ? (
                 <>
@@ -166,7 +166,7 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
                         <div>
                           <div className="text-sm font-bold text-[#171717]">{sub.providerName}</div>
                           <div className="text-xs text-[#737373]">
-                            ?{sub.amount.toLocaleString()} � Next renewal: {sub.nextRenewalDate}
+                            {'\u20A6'}{sub.amount.toLocaleString()} &middot; Next renewal: {sub.nextRenewalDate}
                           </div>
                         </div>
                       </div>
@@ -174,13 +174,13 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
                       <button
                         onClick={() => handleImport(sub)}
                         disabled={isImported}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                        className={`min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                           isImported
                             ? 'bg-gray-100 text-gray-500 cursor-default'
-                            : 'bg-[#3D5438] hover:bg-[#32462E] text-white shadow-2xs'
+                            : 'bg-[#3D5438] hover:bg-[#32462E] active:scale-95 text-white shadow-2xs cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#3D5438]/30'
                         }`}
                       >
-                        {isImported ? 'Imported ?' : 'Add to Tracker +'}
+                        {isImported ? 'Imported \u2713' : 'Add to Tracker +'}
                       </button>
                     </div>
                   );
@@ -197,7 +197,7 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
                 href="https://console.cloud.google.com/apis/credentials"
                 target="_blank"
                 rel="noreferrer"
-                className="text-[#3D5438] hover:underline flex items-center gap-1 font-semibold"
+                className="text-[#3D5438] hover:underline flex items-center gap-1 font-semibold min-h-[44px]"
               >
                 <span>Google Console</span>
                 <ExternalLink className="w-3 h-3" />
@@ -210,13 +210,13 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
                 placeholder="apps.googleusercontent.com Client ID"
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-xl bg-[#FAF8F5] border border-[#E5E0D8] text-xs font-mono text-[#171717] focus:outline-hidden focus:border-[#3D5438]"
+                className="flex-1 min-h-[44px] px-3.5 py-2 rounded-xl bg-[#FAF8F5] border border-[#E5E0D8] text-xs font-mono text-[#171717] focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               />
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-xs font-bold text-[#171717] transition-colors whitespace-nowrap"
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-white hover:bg-[#F0ECE4] active:scale-95 border border-[#E5E0D8] text-xs font-bold text-[#171717] transition-all whitespace-nowrap btn-tactile cursor-pointer"
               >
-                {savedClientId ? 'Saved ?' : 'Save ID'}
+                {savedClientId ? 'Saved \u2713' : 'Save ID'}
               </button>
             </form>
             <p className="text-[11px] text-[#737373]">
@@ -229,7 +229,7 @@ export const GmailOAuthModal: React.FC<GmailOAuthModalProps> = ({
         <div className="p-4 bg-[#FAF8F5] border-t border-[#E5E0D8] flex items-center justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-[#737373] hover:bg-[#EAE6DD] transition-colors"
+            className="min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold text-[#737373] hover:bg-[#EAE6DD] active:scale-95 transition-all cursor-pointer"
           >
             Close
           </button>

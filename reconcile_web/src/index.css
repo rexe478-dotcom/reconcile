@@ -34,24 +34,84 @@ body {
 }
 
 /* Emil Kowalski Micro-interaction & Spring Animation Tokens */
+:root {
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 @layer utilities {
   .btn-tactile {
-    @apply active:scale-[0.97] transition-all duration-150 ease-out select-none cursor-pointer;
+    @apply active:scale-[0.97] select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D5438]/30 focus-visible:ring-offset-2;
+    transition: transform 150ms var(--ease-spring), box-shadow 150ms var(--ease-spring), background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    will-change: transform;
+  }
+
+  .btn-tactile-sm {
+    @apply active:scale-[0.94] select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D5438]/30 focus-visible:ring-offset-2;
+    transition: transform 150ms var(--ease-spring), box-shadow 150ms var(--ease-spring), background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    will-change: transform;
   }
   
   .card-lift {
-    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md;
+    transition: transform 220ms var(--ease-spring), box-shadow 220ms var(--ease-spring), border-color 200ms ease;
+    will-change: transform;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  }
+  .card-lift:active {
+    transform: scale(0.99) translateY(0);
   }
 
+  .focus-ring {
+    @apply focus:outline-none focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all;
+  }
+
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] inline-flex items-center justify-center;
+  }
+
+  /* Modal Bottom Sheet on Mobile / Centered Spring Pop on Desktop */
   .spring-dialog {
-    animation: springPop 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: springSheet 340ms var(--ease-spring) forwards;
+    will-change: transform, opacity;
+  }
+
+  @media (min-width: 640px) {
+    .spring-dialog {
+      animation: springPop 220ms var(--ease-spring) forwards;
+    }
+  }
+
+  .spring-sheet {
+    animation: springSheet 340ms var(--ease-spring) forwards;
+    will-change: transform, opacity;
+  }
+
+  .spring-pop {
+    animation: springPop 220ms var(--ease-spring) forwards;
+    will-change: transform, opacity;
   }
 }
 
+/* Mobile Bottom Sheet slide-up physics */
+@keyframes springSheet {
+  0% {
+    opacity: 0.6;
+    transform: translateY(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Desktop Centered Modal spring pop physics */
 @keyframes springPop {
   0% {
     opacity: 0;
-    transform: scale(0.96) translateY(6px);
+    transform: scale(0.95) translateY(10px);
   }
   100% {
     opacity: 1;

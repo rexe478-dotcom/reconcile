@@ -54,7 +54,7 @@ export const CancellationModal: React.FC<CancellationModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] btn-tactile-sm"
           >
             <X className="w-4 h-4" />
           </button>
@@ -95,7 +95,7 @@ export const CancellationModal: React.FC<CancellationModalProps> = ({
         {/* Launch Button */}
         <button
           onClick={handleLaunchExternal}
-          className="w-full py-3.5 px-4 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
+          className="w-full min-h-[48px] py-3.5 px-4 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm btn-tactile"
         >
           <ExternalLink className="w-4 h-4" />
           <span>Open {subscription.providerName} Cancellation Page</span>
@@ -121,7 +121,7 @@ export const CancellationModal: React.FC<CancellationModalProps> = ({
                   onConfirmCancelled(subscription.id);
                   onClose();
                 }}
-                className="py-2.5 px-3 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold flex items-center justify-center gap-1.5 transition-colors"
+                className="min-h-[44px] py-2.5 px-3 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold flex items-center justify-center gap-1.5 btn-tactile"
               >
                 <CheckCircle className="w-3.5 h-3.5 text-red-600" />
                 <span>Mark Cancelled</span>
@@ -137,7 +137,7 @@ export const CancellationModal: React.FC<CancellationModalProps> = ({
                   }
                   onClose();
                 }}
-                className="py-2.5 px-3 rounded-full bg-white hover:bg-[#EFECE4] border border-[#D8D2C6] text-[#171717] font-medium transition-colors"
+                className="min-h-[44px] py-2.5 px-3 rounded-full bg-white hover:bg-[#EFECE4] border border-[#D8D2C6] text-[#171717] font-medium btn-tactile"
               >
                 Keep Active
               </button>

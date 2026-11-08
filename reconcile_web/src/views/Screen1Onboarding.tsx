@@ -1,5 +1,6 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
+import { MascotLogo } from '../components/common/MascotLogo';
 
 interface Screen1OnboardingProps {
   onConnectGmail: () => void;
@@ -14,9 +15,7 @@ export const Screen1Onboarding: React.FC<Screen1OnboardingProps> = ({
     <div className="flex-1 flex flex-col justify-between px-6 py-4 text-center bg-[#FAF8F5]">
       {/* Top Header Logo */}
       <div className="flex items-center justify-center gap-2 pt-2">
-        <div className="w-7 h-7 rounded-lg bg-[#3D5438] flex items-center justify-center text-white font-black text-sm shadow-sm">
-          R
-        </div>
+        <MascotLogo size={28} className="shadow-xs" />
         <span className="font-extrabold tracking-[0.2em] text-xs text-[#171717]">
           RECONCILE
         </span>

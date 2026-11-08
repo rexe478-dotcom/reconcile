@@ -89,7 +89,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onOpenNotifications}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-xs font-bold text-[#171717] shadow-2xs transition-colors"
+            className="min-h-[44px] flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#F0ECE4] border border-[#E5E0D8] text-xs font-bold text-[#171717] shadow-2xs btn-tactile"
           >
             <Bell className="w-3.5 h-3.5 text-[#3D5438]" />
             <span>Alerts</span>
@@ -97,7 +97,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
           <button
             onClick={onAddSubscription}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold shadow-xs transition-colors"
+            className="min-h-[44px] flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold shadow-xs btn-tactile"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Add Subscription</span>
@@ -211,7 +211,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                 <div
                   key={sub.id}
                   onClick={() => onSelectSubscription(sub)}
-                  className="p-4 rounded-2xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/50 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between"
+                  className="p-4 rounded-2xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/60 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between card-lift group"
                 >
                   <div className="flex items-center gap-3">
                     <BrandIcon providerName={sub.providerName} size={40} />

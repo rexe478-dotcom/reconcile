@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface MascotLogoProps {
   size?: number;
@@ -30,7 +30,7 @@ export const MascotLogo: React.FC<MascotLogoProps> = ({
       style={{ width: size, height: size }}
       className={`relative shrink-0 rounded-2xl overflow-hidden bg-[#FAF8F5] shadow-xs border border-[#E5E0D8]/80 flex items-center justify-center ${
         interactive
-          ? 'hover:scale-108 active:scale-95 transition-transform duration-200 ease-out cursor-pointer'
+          ? 'hover:scale-108 active:scale-95 transition-transform duration-200 ease-spring cursor-pointer will-change-transform'
           : ''
       } ${className}`}
       title="Reconcile Mascot"

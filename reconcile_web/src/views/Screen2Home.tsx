@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Bell, ChevronRight, BarChart2, Calendar, ArrowRight } from 'lucide-react';
 import { Subscription } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
+import { MascotLogo } from '../components/common/MascotLogo';
 
 interface Screen2HomeProps {
   subscriptions: Subscription[];
@@ -54,9 +55,7 @@ export const Screen2Home: React.FC<Screen2HomeProps> = ({
         {/* Top Header Bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#3D5438] flex items-center justify-center text-white font-black text-xs">
-              R
-            </div>
+            <MascotLogo size={24} className="shadow-xs" />
             <span className="font-extrabold tracking-[0.2em] text-xs text-[#171717]">
               RECONCILE
             </span>

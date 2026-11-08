@@ -15,7 +15,7 @@ export default {
           hover: '#EAE5DB',
         },
         border: {
-          DEFAULT: '#E8E3DA',
+          DEFAULT: '#E5E0D8',
           subtle: '#EDE8DF',
         },
         accent: {
@@ -43,6 +43,13 @@ export default {
           google: '#4285F4',
           chatgpt: '#10A37F',
         }
+      },
+      scale: {
+        '108': '1.08',
+      },
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'spring-bounce': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],

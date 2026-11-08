@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Calendar as CalendarIcon, Download, Clock, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Subscription } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
@@ -80,7 +80,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
             downloadCalendarIcs(subscriptions);
             showToast('Downloaded .ICS Calendar file.');
           }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold shadow-xs transition-colors self-start sm:self-auto"
+          className="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#3D5438] hover:bg-[#32462E] text-white text-xs font-bold shadow-xs self-start sm:self-auto btn-tactile"
         >
           <Download className="w-4 h-4" />
           <span>Export .ICS Calendar</span>
@@ -105,7 +105,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                   </span>
                 </div>
 
-                <div className="text-xs font-bold text-[#171717]">
+                <div className="text-xs font-bold text-[#171717] tabular-nums">
                   Total: {InsightsCalculator.formatCurrency(totalInGroup)}
                 </div>
               </div>
@@ -118,7 +118,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                     <div
                       key={sub.id}
                       onClick={() => onSelectSubscription(sub)}
-                      className="p-4 rounded-2xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/50 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group"
+                      className="p-4 rounded-2xl bg-white border border-[#E5E0D8] hover:border-[#3D5438]/50 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group card-lift"
                     >
                       <div className="flex items-center gap-3">
                         <BrandIcon providerName={sub.providerName} size={42} />
@@ -129,7 +129,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                           <div className="text-xs text-[#737373]">
                             {sub.planName || sub.category}
                           </div>
-                          <div className="text-[11px] font-semibold text-[#3D5438] mt-0.5">
+                          <div className="text-[11px] font-semibold text-[#3D5438] mt-0.5 tabular-nums">
                             {days === 0 ? 'Due Today' : days === 1 ? 'Due Tomorrow' : `In ${days} days`} ({sub.nextRenewalDate})
                           </div>
                         </div>
@@ -137,7 +137,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <div className="text-sm font-black text-[#171717]">
+                          <div className="text-sm font-black text-[#171717] tabular-nums">
                             {InsightsCalculator.formatCurrency(sub.amount, sub.currency)}
                           </div>
                           <span className="text-[10px] text-[#737373] capitalize">
@@ -150,7 +150,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                             e.stopPropagation();
                             onOpenCancellation(sub);
                           }}
-                          className="px-2.5 py-1 rounded-lg bg-[#FAF8F5] hover:bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold transition-colors"
+                          className="min-h-[44px] px-3.5 py-2 rounded-xl bg-[#FAF8F5] hover:bg-amber-50 active:scale-95 text-amber-800 border border-amber-200 text-xs font-bold transition-all cursor-pointer flex items-center justify-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/40"
                         >
                           Cancel
                         </button>

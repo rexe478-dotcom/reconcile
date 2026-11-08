@@ -120,7 +120,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
           </h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-white hover:bg-[#EFECE4] text-[#737373] hover:text-[#171717] border border-[#E5E0D8] btn-tactile-sm"
           >
             <X className="w-4 h-4" />
           </button>
@@ -136,9 +136,9 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
                   type="button"
                   key={qp}
                   onClick={() => setProviderName(qp)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs font-semibold btn-tactile-sm ${
                     providerName === qp
-                      ? 'bg-[#3D5438] text-white'
+                      ? 'bg-[#3D5438] text-white shadow-2xs'
                       : 'bg-white hover:bg-[#EFECE4] text-[#171717] border border-[#E5E0D8]'
                   }`}
                 >
@@ -157,7 +157,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               value={providerName}
               onChange={(e) => setProviderName(e.target.value)}
               placeholder="e.g. Netflix, Spotify, Canva"
-              className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+              className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
             />
           </div>
 
@@ -169,7 +169,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               value={planName}
               onChange={(e) => setPlanName(e.target.value)}
               placeholder="e.g. Premium Family, Pro Tier"
-              className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+              className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
             />
           </div>
 
@@ -185,7 +185,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0.00"
-                className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+                className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               />
             </div>
 
@@ -194,7 +194,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+                className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               >
                 <option value="NGN">NGN (₦ - Naira)</option>
                 <option value="USD">USD ($ - US Dollar)</option>
@@ -211,7 +211,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               <select
                 value={interval}
                 onChange={(e) => setInterval(e.target.value as RecurrenceInterval)}
-                className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+                className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               >
                 <option value="month">Monthly</option>
                 <option value="year">Annual / Yearly</option>
@@ -227,7 +227,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
                 required
                 value={nextRenewalDate}
                 onChange={(e) => setNextRenewalDate(e.target.value)}
-                className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+                className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               />
             </div>
           </div>
@@ -239,7 +239,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as SubscriptionStatus)}
-                className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+                className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               >
                 <option value="active">Active</option>
                 <option value="needs_review">Needs Review</option>
@@ -248,8 +248,8 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               </select>
             </div>
 
-            <div className="flex items-end pb-1">
-              <label className="flex items-center gap-2 cursor-pointer text-[#171717] font-medium">
+            <div className="flex items-center min-h-[44px]">
+              <label className="flex items-center gap-2 cursor-pointer text-[#171717] font-medium select-none">
                 <input
                   type="checkbox"
                   checked={remindersEnabled}
@@ -269,7 +269,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Account number, contract terms"
-              className="w-full bg-white border border-[#E5E0D8] focus:border-[#3D5438] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-none"
+              className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
             />
           </div>
 
@@ -284,7 +284,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
                     onClose();
                   }
                 }}
-                className="px-3.5 py-2.5 rounded-full bg-red-50 hover:bg-red-100 text-red-600 font-bold flex items-center gap-1.5 transition-colors border border-red-200"
+                className="min-h-[44px] px-4 py-2.5 rounded-full bg-red-50 hover:bg-red-100 text-red-600 font-bold flex items-center gap-1.5 border border-red-200 btn-tactile"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Delete</span>
@@ -295,13 +295,13 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-full bg-white hover:bg-[#EFECE4] border border-[#D8D2C6] text-[#171717] font-semibold transition-colors"
+                className="min-h-[44px] px-5 py-2.5 rounded-full bg-white hover:bg-[#EFECE4] border border-[#D8D2C6] text-[#171717] font-semibold btn-tactile"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                className="min-h-[44px] px-6 py-2.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white font-bold flex items-center gap-1.5 shadow-sm btn-tactile"
               >
                 <Check className="w-4 h-4 stroke-[2.5]" />
                 <span>Save</span>

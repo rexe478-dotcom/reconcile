@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   CheckCircle2, 
   Bell, 
@@ -309,7 +309,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Receive native device notifications before your subscriptions renew.
             </p>
             <span className="text-[11px] font-bold text-[#3D5438] block pt-1">
-              Open Notification Center \u2192
+              Open Notification Center &rarr;
             </span>
           </div>
 
@@ -325,7 +325,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Automatically scan inbox receipts & invoices using Google Sign-In with zero manual entry.
             </p>
             <span className="text-[11px] font-bold text-[#3D5438] block pt-1">
-              Scan Receipts from Gmail \u2192
+              Scan Receipts from Gmail &rarr;
             </span>
           </div>
         </div>
