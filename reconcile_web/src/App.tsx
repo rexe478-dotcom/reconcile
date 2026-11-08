@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useUser, useClerk } from '@clerk/react';
 import { 
   Plus, 
   Bell, 
@@ -38,11 +39,31 @@ export const App: React.FC = () => {
   // Navigation
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
 
+  // Clerk Auth Integration
+  const { user: clerkUser, isSignedIn: isClerkSignedIn } = useUser();
+  const { signOut: clerkSignOut } = useClerk();
+
   // Authentication & Remote State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => AuthService.isAuthenticated());
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+
+  // Synchronize Clerk user session with Reconcile application state
+  useEffect(() => {
+    if (isClerkSignedIn && clerkUser) {
+      const email = clerkUser.primaryEmailAddress?.emailAddress || 'User';
+      const profile: UserProfile = {
+        id: clerkUser.id,
+        email: email,
+        preferred_timezone: typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC',
+        created_at: clerkUser.createdAt ? clerkUser.createdAt.toISOString() : new Date().toISOString()
+      };
+      setCurrentUser(profile);
+      setIsAuthenticated(true);
+      setShowAuthModal(false);
+    }
+  }, [isClerkSignedIn, clerkUser]);
 
   // Subscriptions State
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(() =>
@@ -181,7 +202,14 @@ export const App: React.FC = () => {
     showToast('Reset to demo subscriptions.');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      if (isClerkSignedIn) {
+        await clerkSignOut();
+      }
+    } catch (err) {
+      console.warn('Clerk signOut warning', err);
+    }
     AuthService.logout();
     setIsAuthenticated(false);
     setCurrentUser(null);
