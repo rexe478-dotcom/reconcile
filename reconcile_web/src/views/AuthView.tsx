@@ -89,9 +89,11 @@ export const AuthView: React.FC<AuthViewProps> = ({
     elements: {
       rootBox: 'w-full flex justify-center',
       card: 'w-full shadow-none border-0 p-0 bg-transparent text-[#171717]',
-      headerTitle: 'text-xl font-black text-[#171717] tracking-tight',
-      headerSubtitle: 'text-xs text-[#737373]',
-      socialButtonsBlockButton: 'min-h-[44px] border border-[#E5E0D8] bg-white hover:bg-[#FAF8F5] text-xs font-bold text-[#171717] rounded-xl shadow-2xs py-2.5 transition-all flex items-center justify-center gap-2',
+      header: 'hidden',
+      headerTitle: 'hidden',
+      headerSubtitle: 'hidden',
+      footerAction: 'hidden',
+      socialButtonsBlockButton: 'min-h-[44px] border border-[#E5E0D8] bg-white hover:bg-[#FAF8F5] text-xs font-bold text-[#171717] rounded-xl shadow-2xs py-2.5 transition-all flex items-center justify-center gap-2 cursor-pointer',
       socialButtonsBlockButtonText: 'text-xs font-bold text-[#171717]',
       formButtonPrimary: 'min-h-[44px] bg-[#3D5438] hover:bg-[#32462E] active:scale-[0.98] text-white font-black text-xs rounded-xl py-3 shadow-xs transition-all cursor-pointer',
       formFieldInput: 'min-h-[42px] rounded-xl border border-[#E5E0D8] bg-white text-xs text-[#171717] px-3.5 focus:ring-2 focus:ring-[#3D5438]/20 focus:border-[#3D5438] transition-all',
@@ -99,7 +101,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
       footerActionLink: 'text-[#3D5438] hover:underline font-bold text-xs',
       dividerLine: 'bg-[#E5E0D8]',
       dividerText: 'text-[11px] text-[#737373] uppercase font-semibold tracking-wide',
-      footer: 'pt-2 text-center text-xs text-[#737373]'
+      footer: 'pt-1 text-center text-xs text-[#737373]'
     },
     variables: {
       colorPrimary: '#3D5438',
@@ -108,7 +110,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
       colorInputBackground: '#FFFFFF',
       colorInputText: '#171717',
       borderRadius: '0.75rem',
-      fontFamily: 'Outfit, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }
   };
 
@@ -153,8 +155,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
         </button>
       </div>
 
-      {/* Primary Auth: Clerk Seamless Google & Email Authentication */}
-      <div className="w-full flex justify-center min-h-[320px]">
+      {/* Primary Auth: Clerk Google & Email Authentication */}
+      <div className="w-full flex justify-center min-h-[300px]">
         {authMode === 'signin' ? (
           <SignIn
             routing="hash"
