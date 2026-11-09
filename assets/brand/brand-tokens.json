@@ -1,0 +1,16 @@
+{
+  "brand": "Reconcile",
+  "tagline": "Never miss a subscription again.",
+  "colors": {
+    "background": "#F5F3ED",
+    "paper": "#E5E0D5",
+    "accent": "#A5C96B",
+    "ink": "#1A1A1A",
+    "muted": "#858477"
+  },
+  "typography": {
+    "preferred": ["Inter", "system-ui", "Arial", "sans-serif"],
+    "headings": "Inter / system sans-serif, semibold or bold",
+    "body": "Inter / system sans-serif, regular"
+  }
+}
