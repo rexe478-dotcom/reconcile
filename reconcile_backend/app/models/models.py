@@ -15,6 +15,7 @@ class User(Base):
 
     subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
     cancellation_attempts = relationship("CancellationAttempt", back_populates="user", cascade="all, delete-orphan")
+    gmail_credential = relationship("GmailCredential", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
@@ -65,3 +66,21 @@ class ProviderDestination(Base):
     is_verified = Column(Boolean, default=True)
     official_support_url = Column(Text, nullable=True)
     billing_route_notes = Column(Text, nullable=True)
+
+class GmailCredential(Base):
+    __tablename__ = "gmail_credentials"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"gmc_{uuid.uuid4().hex[:12]}")
+    user_id = Column(String(64), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    google_email = Column(String(255), nullable=True)
+    access_token_encrypted = Column(Text, nullable=False)
+    refresh_token_encrypted = Column(Text, nullable=True)
+    token_expiry = Column(DateTime(timezone=True), nullable=True)
+    scopes = Column(Text, nullable=True)
+    is_connected = Column(Boolean, default=True)
+    last_sync_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="gmail_credential")
+

@@ -57,7 +57,7 @@ export const App: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
-  // Synchronize Clerk user session with Reconcile application state
+  // Synchronize Clerk user session with Reconcile application state & backend database
   useEffect(() => {
     if (isClerkSignedIn && clerkUser) {
       const email = clerkUser.primaryEmailAddress?.emailAddress || 'User';
@@ -70,8 +70,37 @@ export const App: React.FC = () => {
       setCurrentUser(profile);
       setIsAuthenticated(true);
       setShowAuthModal(false);
+
+      // Sync Clerk user with backend database to obtain valid backend JWT
+      AuthService.syncClerkUser(clerkUser.id, email).catch((err) => {
+        console.warn('Backend Clerk sync notice:', err);
+      });
     }
   }, [isClerkSignedIn, clerkUser]);
+
+  // Handle post-OAuth Gmail redirect callbacks from FastAPI backend (#settings?gmail=connected)
+  useEffect(() => {
+    const handleLocationCheck = () => {
+      if (typeof window === 'undefined') return;
+      const hash = window.location.hash;
+      if (hash.includes('gmail=connected')) {
+        setActiveTab('settings');
+        setIsGmailOpen(true);
+        showToast('Gmail account connected! You can now scan subscription receipts.');
+        window.history.replaceState(null, '', window.location.pathname + '#settings');
+      } else if (hash.includes('gmail_error=')) {
+        setActiveTab('settings');
+        const match = hash.match(/gmail_error=([^&]*)/);
+        const errDetail = match ? decodeURIComponent(match[1]) : 'Authentication failed';
+        showToast(`Google OAuth notice: ${errDetail}`);
+        window.history.replaceState(null, '', window.location.pathname + '#settings');
+      }
+    };
+
+    handleLocationCheck();
+    window.addEventListener('hashchange', handleLocationCheck);
+    return () => window.removeEventListener('hashchange', handleLocationCheck);
+  }, []);
 
   // Subscriptions State
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(() =>
@@ -491,8 +520,8 @@ export const App: React.FC = () => {
         onClose={() => setIsGmailOpen(false)}
         onImportCandidate={(cand) => {
           setSubscriptions((prev) => [cand, ...prev]);
-          showToast(`Imported ${cand.providerName}.`);
         }}
+        showToast={showToast}
       />
 
       {/* 6. Auth Modal (Sign In / Register) */}

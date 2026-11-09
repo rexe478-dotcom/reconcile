@@ -54,11 +54,11 @@ export const AuthView: React.FC<AuthViewProps> = ({
       header: 'hidden',
       headerTitle: 'hidden',
       headerSubtitle: 'hidden',
-      socialButtonsBlockButton: 'w-full min-h-[44px] rounded-xl border border-[#E5E0D5] bg-white hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1A1A] shadow-2xs py-2.5 transition-all flex items-center justify-center gap-2 cursor-pointer',
-      socialButtonsBlockButtonText: 'text-xs font-bold text-[#1A1A1A]',
-      dividerRow: 'my-3 flex items-center',
-      dividerLine: 'bg-[#E5E0D5]',
-      dividerText: 'text-[11px] font-bold text-[#858477] uppercase tracking-wider px-2',
+      socialButtonsBlockButton: 'hidden',
+      socialButtonsBlockButtonText: 'hidden',
+      dividerRow: 'hidden',
+      dividerLine: 'hidden',
+      dividerText: 'hidden',
       form: 'w-full space-y-3',
       formField: 'w-full space-y-1.5 text-left',
       formFieldLabel: 'text-xs font-bold text-[#1A1A1A] block text-left leading-tight',
@@ -98,7 +98,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
         </p>
       </div>
 
-      {/* Primary Auth: Clerk Google & Email Authentication */}
+      {/* Primary Auth: Clerk Email & Password Authentication */}
       <div className="w-full flex justify-center">
         {authMode === 'signin' ? (
           <SignIn

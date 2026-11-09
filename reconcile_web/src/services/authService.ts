@@ -69,6 +69,43 @@ export const AuthService = {
     }
   },
 
+  async syncClerkUser(
+    clerkId: string,
+    email: string,
+    timezone?: string
+  ): Promise<AuthResponse> {
+    const preferred_timezone =
+      timezone ||
+      (typeof Intl !== 'undefined'
+        ? Intl.DateTimeFormat().resolvedOptions().timeZone
+        : 'UTC') ||
+      'UTC';
+
+    try {
+      const response = await apiClient.post<AuthResponse>('/api/v1/auth/clerk-sync', {
+        clerk_id: clerkId,
+        email,
+        preferred_timezone,
+      });
+      setAuthToken(response.access_token);
+      return response;
+    } catch {
+      // Offline fallback: store local synthetic token so app remains responsive
+      const fallbackToken = `clerk_session_${clerkId}`;
+      setAuthToken(fallbackToken);
+      return {
+        access_token: fallbackToken,
+        token_type: 'bearer',
+        user: {
+          id: clerkId,
+          email,
+          preferred_timezone,
+          created_at: new Date().toISOString(),
+        },
+      };
+    }
+  },
+
   async getProfile(): Promise<UserProfile> {
     return apiClient.get<UserProfile>('/api/v1/auth/me');
   },

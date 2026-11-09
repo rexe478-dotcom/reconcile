@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base, AsyncSessionLocal
 from app.services.seed_providers import seed_providers
-from app.api import health, auth, subscriptions, calendar, providers, cancellation
+from app.api import health, auth, subscriptions, calendar, providers, cancellation, gmail
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,6 +42,7 @@ app.include_router(subscriptions.router, prefix=settings.API_V1_STR)
 app.include_router(calendar.router, prefix=settings.API_V1_STR)
 app.include_router(providers.router, prefix=settings.API_V1_STR)
 app.include_router(cancellation.router, prefix=settings.API_V1_STR)
+app.include_router(gmail.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():

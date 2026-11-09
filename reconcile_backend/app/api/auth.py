@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token, get_current_user
 from app.models.models import User
-from app.schemas.schemas import UserCreate, UserLogin, GoogleLoginRequest, UserResponse, TokenResponse
+from app.schemas.schemas import UserCreate, UserLogin, GoogleLoginRequest, UserResponse, TokenResponse, ClerkSyncRequest
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -110,3 +110,39 @@ async def google_auth(payload: GoogleLoginRequest, db: AsyncSession = Depends(ge
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
+
+@router.post("/clerk-sync", response_model=TokenResponse)
+async def clerk_sync(payload: ClerkSyncRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Synchronizes an authenticated Clerk session with the backend database.
+    Ensures user exists in PostgreSQL and issues a valid API JWT access token.
+    """
+    # 1. Look up by clerk_id directly
+    result = await db.execute(select(User).where(User.id == payload.clerk_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # 2. Check if a user with this email already exists
+        result_email = await db.execute(select(User).where(User.email == payload.email))
+        user_by_email = result_email.scalar_one_or_none()
+        if user_by_email:
+            user = user_by_email
+        else:
+            # Create a new user with clerk_id as primary key
+            user = User(
+                id=payload.clerk_id,
+                email=payload.email,
+                hashed_password=get_password_hash(secrets.token_urlsafe(32)),
+                preferred_timezone=payload.preferred_timezone or "UTC"
+            )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+
+    access_token = create_access_token(data={"sub": user.id, "email": user.email})
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user)
+    )
+

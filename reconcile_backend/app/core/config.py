@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,23 @@ class Settings(BaseSettings):
         "CORS_ORIGINS",
         "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,https://*.github.io"
     )
+
+    # Google OAuth 2.0 Credentials (for independent Gmail authorization-code flow)
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    GOOGLE_REDIRECT_URI: str = os.getenv(
+        "GOOGLE_REDIRECT_URI",
+        "https://reconcile-api-9htz.onrender.com/api/v1/gmail/callback"
+    )
+
+    # Frontend URL for redirecting post-OAuth
+    FRONTEND_URL: str = os.getenv(
+        "FRONTEND_URL",
+        "https://rexe478-dotcom.github.io/reconcile"
+    )
+
+    # Dedicated encryption key for token encryption at rest (falls back to JWT_SECRET_KEY)
+    GMAIL_ENCRYPTION_KEY: Optional[str] = os.getenv("GMAIL_ENCRYPTION_KEY", None)
 
     @property
     def cors_origins_list(self) -> List[str]:

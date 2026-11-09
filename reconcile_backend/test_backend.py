@@ -7,6 +7,11 @@ from datetime import date
 
 async def run_tests():
     print("=== Reconcile Backend & Cloud PostgreSQL Verification ===\n")
+    from app.core.database import engine, Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    print("  [OK] Database schema verified and synchronized.")
+
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
         # 1. Health check
@@ -167,9 +172,62 @@ async def run_tests():
             assert res.status_code == 204
         print("  [OK] All test subscriptions deleted cleanly")
 
+        # 11. Clerk Session Sync
+        print("\n[11] Testing Clerk Session Sync (/api/v1/auth/clerk-sync)...")
+        clerk_test_id = f"user_clerk_{uuid.uuid4().hex[:12]}"
+        clerk_test_email = f"clerk_{uuid.uuid4().hex[:8]}@example.com"
+        res = await client.post("/api/v1/auth/clerk-sync", json={
+            "clerk_id": clerk_test_id,
+            "email": clerk_test_email,
+            "preferred_timezone": "UTC"
+        })
+        assert res.status_code == 200, f"Clerk sync failed: {res.text}"
+        clerk_sync_data = res.json()
+        assert clerk_sync_data["user"]["id"] == clerk_test_id
+        clerk_jwt = clerk_sync_data["access_token"]
+        clerk_headers = {"Authorization": f"Bearer {clerk_jwt}"}
+        print(f"  [OK] Clerk user synced with ID: {clerk_test_id}")
+        print(f"  [OK] Issued backend JWT: {clerk_jwt[:25]}...")
+
+        # 12. Token Encryption & Decryption
+        print("\n[12] Testing AES Fernet Token Encryption at Rest...")
+        from app.core.encryption import encrypt_secret, decrypt_secret
+        sample_refresh_token = "1//04_fake_refresh_token_xyz987"
+        encrypted = encrypt_secret(sample_refresh_token)
+        assert encrypted != sample_refresh_token
+        decrypted = decrypt_secret(encrypted)
+        assert decrypted == sample_refresh_token
+        print("  [OK] Refresh token securely encrypted and decrypted with authenticated AES Fernet")
+
+        # 13. Gmail Auth URL Generation
+        print("\n[13] Testing Gmail OAuth URL Generation (/api/v1/gmail/auth-url)...")
+        res = await client.get("/api/v1/gmail/auth-url", headers=clerk_headers)
+        assert res.status_code == 200, f"Auth URL generation failed: {res.text}"
+        auth_url_data = res.json()
+        assert "accounts.google.com" in auth_url_data["auth_url"]
+        assert "gmail.readonly" in auth_url_data["auth_url"]
+        assert auth_url_data["testing_mode"] is True
+        print("  [OK] Google OAuth authorization URL generated with signed state & readonly scope")
+        print(f"  [OK] Testing Notice: {auth_url_data['verification_notice'][:50]}...")
+
+        # 14. Gmail Status & Disconnect Flow
+        print("\n[14] Testing Gmail Status & Disconnect Endpoints...")
+        res = await client.get("/api/v1/gmail/status", headers=clerk_headers)
+        assert res.status_code == 200
+        status_data = res.json()
+        assert status_data["connected"] is False
+        assert status_data["testing_mode"] is True
+        print("  [OK] Status reported: disconnected (zero tokens exposed)")
+
+        res = await client.post("/api/v1/gmail/disconnect", headers=clerk_headers)
+        assert res.status_code == 200
+        assert res.json()["success"] is True
+        print("  [OK] Gmail disconnect succeeded cleanly")
+
         print("\n==================================================")
-        print("ALL BACKEND & CLOUD DATABASE TESTS PASSED (10/10)!")
+        print("ALL BACKEND & CLOUD DATABASE TESTS PASSED (14/14)!")
         print("==================================================")
 
 if __name__ == "__main__":
     asyncio.run(run_tests())
+

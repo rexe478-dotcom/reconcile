@@ -113,3 +113,45 @@ class ProviderDestinationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# ----------------- Clerk Authentication Sync -----------------
+class ClerkSyncRequest(BaseModel):
+    clerk_id: str = Field(..., min_length=1)
+    email: EmailStr
+    preferred_timezone: Optional[str] = "UTC"
+
+# ----------------- Gmail OAuth & Sync Schemas -----------------
+class GmailAuthUrlResponse(BaseModel):
+    auth_url: str
+    testing_mode: bool = True
+    verification_notice: str
+
+class GmailStatusResponse(BaseModel):
+    connected: bool
+    email: Optional[str] = None
+    last_sync_at: Optional[datetime] = None
+    testing_mode: bool = True
+    notice: str
+
+class GmailDisconnectResponse(BaseModel):
+    success: bool
+    message: str
+
+class GmailCandidateSubscription(BaseModel):
+    id: str
+    provider_name: str
+    plan_name: Optional[str] = None
+    amount: float
+    currency: str = "₦"
+    interval_unit: str = "month"
+    interval_count: int = 1
+    next_renewal_date: date
+    detected_from: str
+    snippet: Optional[str] = None
+
+class GmailSyncResponse(BaseModel):
+    synced_at: datetime
+    found_count: int
+    candidates: List[GmailCandidateSubscription]
+    notice: str
+

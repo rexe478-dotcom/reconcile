@@ -277,14 +277,19 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] hover:border-[#3D5438] transition-all cursor-pointer space-y-2 card-lift"
           >
             <div className="flex items-center justify-between">
-              <span className="font-bold text-sm text-[#171717]">Gmail Subscription Discovery</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm text-[#171717]">Gmail Receipt Discovery</span>
+                <span className="text-[10px] font-bold text-[#858477] bg-white px-2 py-0.5 rounded-full border border-[#E5E0D5]">
+                  Testing Mode
+                </span>
+              </div>
               <Mail className="w-4 h-4 text-[#EA4335]" />
             </div>
             <p className="text-[#737373]">
-              Automatically scan inbox receipts & invoices using Google Sign-In with zero manual entry.
+              Optionally connect your Google account to scan invoices with read-only permission. Credentials are kept securely on the backend.
             </p>
             <span className="text-[11px] font-bold text-[#3D5438] block pt-1">
-              Scan Receipts from Gmail &rarr;
+              Open Gmail Scanner &rarr;
             </span>
           </div>
         </div>

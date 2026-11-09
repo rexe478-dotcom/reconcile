@@ -20,3 +20,12 @@ services:
         generateValue: true
       - key: CORS_ORIGINS
         value: "http://localhost:3000,http://127.0.0.1:3000,https://*.github.io,https://*.netlify.app,https://*.vercel.app"
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        value: "https://reconcile-api-9htz.onrender.com/api/v1/gmail/callback"
+      - key: FRONTEND_URL
+        value: "https://rexe478-dotcom.github.io/reconcile"
+
