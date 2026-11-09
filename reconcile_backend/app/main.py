@@ -4,13 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base, AsyncSessionLocal
 from app.services.seed_providers import seed_providers
-from app.api import health, auth, subscriptions, calendar, providers, cancellation, gmail
+from app.api import health, auth, subscriptions, calendar, providers, cancellation
+
+from sqlalchemy import text
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure database schema is initialized on startup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS category VARCHAR(64) DEFAULT 'General'"))
     # Seed provider registry if empty
     async with AsyncSessionLocal() as db:
         await seed_providers(db)
@@ -42,7 +45,6 @@ app.include_router(subscriptions.router, prefix=settings.API_V1_STR)
 app.include_router(calendar.router, prefix=settings.API_V1_STR)
 app.include_router(providers.router, prefix=settings.API_V1_STR)
 app.include_router(cancellation.router, prefix=settings.API_V1_STR)
-app.include_router(gmail.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():

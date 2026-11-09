@@ -9,6 +9,8 @@ export class InsightsCalculator {
     switch (interval) {
       case 'month':
         return amount / count;
+      case 'quarter':
+        return amount / (count * 3);
       case 'year':
         return amount / (count * 12);
       case 'week':

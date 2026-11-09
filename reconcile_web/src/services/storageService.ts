@@ -8,160 +8,16 @@ function getDateRelative(daysOffset: number): string {
   return d.toISOString().split('T')[0];
 }
 
-export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
-  {
-    id: 'sub-netflix',
-    providerName: 'Netflix',
-    planName: 'Standard HD Plan',
-    amount: 7500,
-    currency: 'NGN',
-    interval: 'month',
-    intervalCount: 1,
-    nextRenewalDate: getDateRelative(3),
-    anchorDay: new Date(getDateRelative(3)).getDate(),
-    category: 'Entertainment',
-    provenance: 'gmail',
-    status: 'active',
-    remindersEnabled: true,
-    reminderDaysBefore: [1, 3],
-    cancellationUrl: 'https://www.netflix.com/youraccount',
-    notes: 'Family streaming profile.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sub-spotify',
-    providerName: 'Spotify',
-    planName: 'Individual Premium',
-    amount: 2500,
-    currency: 'NGN',
-    interval: 'month',
-    intervalCount: 1,
-    nextRenewalDate: getDateRelative(7),
-    anchorDay: new Date(getDateRelative(7)).getDate(),
-    category: 'Entertainment',
-    provenance: 'gmail',
-    status: 'active',
-    remindersEnabled: true,
-    reminderDaysBefore: [1],
-    cancellationUrl: 'https://www.spotify.com/account/overview/',
-    notes: 'Music. Podcasts. More.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sub-adobe',
-    providerName: 'Adobe',
-    planName: 'Creative Cloud Suite',
-    amount: 14000,
-    currency: 'NGN',
-    interval: 'month',
-    intervalCount: 1,
-    nextRenewalDate: getDateRelative(12),
-    anchorDay: new Date(getDateRelative(12)).getDate(),
-    category: 'Productivity',
-    provenance: 'gmail',
-    status: 'needs_review',
-    remindersEnabled: true,
-    reminderDaysBefore: [7, 3, 1],
-    cancellationUrl: 'https://account.adobe.com/plans',
-    notes: 'Photoshop, Illustrator, Premiere annual subscription.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sub-googleone',
-    providerName: 'Google One',
-    planName: '100 GB Cloud Storage',
-    amount: 500,
-    currency: 'NGN',
-    interval: 'month',
-    intervalCount: 1,
-    nextRenewalDate: getDateRelative(18),
-    anchorDay: new Date(getDateRelative(18)).getDate(),
-    category: 'Cloud',
-    provenance: 'manual',
-    status: 'active',
-    remindersEnabled: true,
-    reminderDaysBefore: [1],
-    cancellationUrl: 'https://one.google.com/settings',
-    notes: 'Drive and Gmail expanded storage.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sub-notion',
-    providerName: 'Notion',
-    planName: 'Team Workspace',
-    amount: 4000,
-    currency: 'NGN',
-    interval: 'month',
-    intervalCount: 1,
-    nextRenewalDate: getDateRelative(22),
-    anchorDay: new Date(getDateRelative(22)).getDate(),
-    category: 'Productivity',
-    provenance: 'manual',
-    status: 'active',
-    remindersEnabled: true,
-    reminderDaysBefore: [1],
-    cancellationUrl: 'https://www.notion.so/settings',
-    notes: 'Notes, docs, and knowledgebase.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sub-youtube',
-    providerName: 'YouTube Premium',
-    planName: 'Individual Ad-free',
-    amount: 1100,
-    currency: 'NGN',
-    interval: 'month',
-    intervalCount: 1,
-    nextRenewalDate: getDateRelative(26),
-    anchorDay: new Date(getDateRelative(26)).getDate(),
-    category: 'Entertainment',
-    provenance: 'manual',
-    status: 'active',
-    remindersEnabled: true,
-    reminderDaysBefore: [1],
-    cancellationUrl: 'https://www.youtube.com/paid_memberships',
-    notes: 'Ad-free streaming and YouTube Music.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sub-chatgpt',
-    providerName: 'ChatGPT Plus',
-    planName: 'Monthly Plus Tier',
-    amount: 20000,
-    currency: 'NGN',
-    interval: 'month',
-    intervalCount: 1,
-    nextRenewalDate: getDateRelative(31),
-    anchorDay: new Date(getDateRelative(31)).getDate(),
-    category: 'Productivity',
-    provenance: 'manual',
-    status: 'active',
-    remindersEnabled: true,
-    reminderDaysBefore: [1, 3],
-    cancellationUrl: 'https://chatgpt.com/#settings/Subscription',
-    notes: 'GPT-4o and advanced data analysis.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+export const INITIAL_SUBSCRIPTIONS: Subscription[] = [];
 
 export class StorageService {
   public static loadSubscriptions(): Subscription[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
-      let list: Subscription[] = [];
       if (!data) {
-        list = INITIAL_SUBSCRIPTIONS;
-        this.saveSubscriptions(list);
-      } else {
-        list = JSON.parse(data) as Subscription[];
+        return [];
       }
+      const list = JSON.parse(data) as Subscription[];
 
       // Auto-advance any past dates so they are always current and positive
       const today = new Date();
@@ -180,8 +36,8 @@ export class StorageService {
         return sub;
       });
     } catch (e) {
-      console.error('Failed to load subscriptions from localStorage, fallback to demo data', e);
-      return INITIAL_SUBSCRIPTIONS;
+      console.error('Failed to load subscriptions from localStorage', e);
+      return [];
     }
   }
 
@@ -194,8 +50,8 @@ export class StorageService {
   }
 
   public static resetToDemo(): Subscription[] {
-    this.saveSubscriptions(INITIAL_SUBSCRIPTIONS);
-    return INITIAL_SUBSCRIPTIONS;
+    this.saveSubscriptions([]);
+    return [];
   }
 
   public static exportJSON(subs: Subscription[]): void {

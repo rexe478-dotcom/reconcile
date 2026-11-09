@@ -30,7 +30,6 @@ import { SettingsTab } from './views/SettingsTab';
 import { SubscriptionDetailsModal } from './components/modals/SubscriptionDetailsModal';
 import { AddEditModal } from './components/modals/AddEditModal';
 import { CancellationModal } from './components/modals/CancellationModal';
-import { GmailOAuthModal } from './components/modals/GmailOAuthModal';
 import { NotificationCenterModal } from './components/modals/NotificationCenterModal';
 import { OnboardingModal } from './components/modals/OnboardingModal';
 import { AuthView } from './views/AuthView';
@@ -78,30 +77,6 @@ export const App: React.FC = () => {
     }
   }, [isClerkSignedIn, clerkUser]);
 
-  // Handle post-OAuth Gmail redirect callbacks from FastAPI backend (#settings?gmail=connected)
-  useEffect(() => {
-    const handleLocationCheck = () => {
-      if (typeof window === 'undefined') return;
-      const hash = window.location.hash;
-      if (hash.includes('gmail=connected')) {
-        setActiveTab('settings');
-        setIsGmailOpen(true);
-        showToast('Gmail account connected! You can now scan subscription receipts.');
-        window.history.replaceState(null, '', window.location.pathname + '#settings');
-      } else if (hash.includes('gmail_error=')) {
-        setActiveTab('settings');
-        const match = hash.match(/gmail_error=([^&]*)/);
-        const errDetail = match ? decodeURIComponent(match[1]) : 'Authentication failed';
-        showToast(`Google OAuth notice: ${errDetail}`);
-        window.history.replaceState(null, '', window.location.pathname + '#settings');
-      }
-    };
-
-    handleLocationCheck();
-    window.addEventListener('hashchange', handleLocationCheck);
-    return () => window.removeEventListener('hashchange', handleLocationCheck);
-  }, []);
-
   // Subscriptions State
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(() =>
     StorageService.loadSubscriptions()
@@ -114,7 +89,6 @@ export const App: React.FC = () => {
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
   const [cancellingSub, setCancellingSub] = useState<Subscription | null>(null);
-  const [isGmailOpen, setIsGmailOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   // Toast feedback banner
@@ -138,9 +112,7 @@ export const App: React.FC = () => {
       const profile = await AuthService.getProfile();
       setCurrentUser(profile);
       const remote = await SubscriptionApi.list();
-      if (remote && remote.length > 0) {
-        setSubscriptions(remote);
-      }
+      setSubscriptions(remote || []);
       showToast(`Synced with cloud database as ${profile.email}`);
     } catch (err) {
       console.warn('Backend sync failed, falling back to local storage', err);
@@ -232,13 +204,6 @@ export const App: React.FC = () => {
     showToast(`Reminders ${newEnabled ? 'activated' : 'muted'} for ${target.providerName}.`);
   };
 
-  const handleResetDemo = () => {
-    const demo = StorageService.resetToDemo();
-    setSubscriptions(demo);
-    setSelectedSub(null);
-    showToast('Reset to demo subscriptions.');
-  };
-
   const handleLogout = async () => {
     try {
       if (isClerkSignedIn) {
@@ -250,10 +215,10 @@ export const App: React.FC = () => {
     AuthService.logout();
     setIsAuthenticated(false);
     setCurrentUser(null);
-    const demo = StorageService.resetToDemo();
-    setSubscriptions(demo);
+    setSubscriptions([]);
+    StorageService.saveSubscriptions([]);
     setSelectedSub(null);
-    showToast('Signed out. Local demo data restored.');
+    showToast('Signed out successfully.');
   };
 
   return (
@@ -400,9 +365,7 @@ export const App: React.FC = () => {
             subscriptions={subscriptions}
             onOpenAuth={() => setShowAuthModal(true)}
             onLogout={handleLogout}
-            onOpenGmail={() => setIsGmailOpen(true)}
             onOpenNotifications={() => setIsNotificationOpen(true)}
-            onResetDemo={handleResetDemo}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
             showToast={showToast}
           />
@@ -514,15 +477,6 @@ export const App: React.FC = () => {
         }}
       />
 
-      {/* 5. Gmail OAuth Discovery Modal */}
-      <GmailOAuthModal
-        isOpen={isGmailOpen}
-        onClose={() => setIsGmailOpen(false)}
-        onImportCandidate={(cand) => {
-          setSubscriptions((prev) => [cand, ...prev]);
-        }}
-        showToast={showToast}
-      />
 
       {/* 6. Auth Modal (Sign In / Register) */}
       {showAuthModal && (

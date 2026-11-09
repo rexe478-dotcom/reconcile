@@ -82,6 +82,8 @@ async def get_spend_insights(
         elif unit == "year":
             monthly_val = amt / (count * 12)
             annual_count += 1
+        elif unit == "quarter":
+            monthly_val = amt / (count * 3)
         elif unit == "week":
             monthly_val = (amt * 52) / (count * 12)
         else:

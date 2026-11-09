@@ -8,8 +8,10 @@ from datetime import date
 async def run_tests():
     print("=== Reconcile Backend & Cloud PostgreSQL Verification ===\n")
     from app.core.database import engine, Base
+    from sqlalchemy import text
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS category VARCHAR(64) DEFAULT 'General'"))
     print("  [OK] Database schema verified and synchronized.")
 
     transport = httpx.ASGITransport(app=app)
@@ -189,43 +191,88 @@ async def run_tests():
         print(f"  [OK] Clerk user synced with ID: {clerk_test_id}")
         print(f"  [OK] Issued backend JWT: {clerk_jwt[:25]}...")
 
-        # 12. Token Encryption & Decryption
-        print("\n[12] Testing AES Fernet Token Encryption at Rest...")
-        from app.core.encryption import encrypt_secret, decrypt_secret
-        sample_refresh_token = "1//04_fake_refresh_token_xyz987"
-        encrypted = encrypt_secret(sample_refresh_token)
-        assert encrypted != sample_refresh_token
-        decrypted = decrypt_secret(encrypted)
-        assert decrypted == sample_refresh_token
-        print("  [OK] Refresh token securely encrypted and decrypted with authenticated AES Fernet")
+        # 12. Multi-User Isolation Verification
+        print("\n[12] Testing Strict Multi-User Data Isolation...")
+        # Create User A subscription
+        sub_a_res = await client.post("/api/v1/subscriptions", json={
+            "provider_name": "User A Private Service",
+            "plan_name": "Personal Pro",
+            "amount": 49.99,
+            "currency": "USD",
+            "interval_unit": "month",
+            "interval_count": 1,
+            "category": "Cloud & Utilities",
+            "cancellation_url": "https://example.com/cancel-a",
+            "next_renewal_date": "2026-12-01"
+        }, headers=clerk_headers)
+        assert sub_a_res.status_code == 201, f"User A sub creation failed: {sub_a_res.text}"
+        sub_a_id = sub_a_res.json()["id"]
+        assert sub_a_res.json()["category"] == "Cloud & Utilities"
 
-        # 13. Gmail Auth URL Generation
-        print("\n[13] Testing Gmail OAuth URL Generation (/api/v1/gmail/auth-url)...")
-        res = await client.get("/api/v1/gmail/auth-url", headers=clerk_headers)
-        assert res.status_code == 200, f"Auth URL generation failed: {res.text}"
-        auth_url_data = res.json()
-        assert "accounts.google.com" in auth_url_data["auth_url"]
-        assert "gmail.readonly" in auth_url_data["auth_url"]
-        assert auth_url_data["testing_mode"] is True
-        print("  [OK] Google OAuth authorization URL generated with signed state & readonly scope")
-        print(f"  [OK] Testing Notice: {auth_url_data['verification_notice'][:50]}...")
+        # Create separate User B
+        user_b_id = f"user_clerk_b_{uuid.uuid4().hex[:10]}"
+        res_b_sync = await client.post("/api/v1/auth/clerk-sync", json={
+            "clerk_id": user_b_id,
+            "email": f"user_b_{uuid.uuid4().hex[:6]}@example.com",
+            "preferred_timezone": "UTC"
+        })
+        assert res_b_sync.status_code == 200
+        jwt_b = res_b_sync.json()["access_token"]
+        headers_b = {"Authorization": f"Bearer {jwt_b}"}
 
-        # 14. Gmail Status & Disconnect Flow
-        print("\n[14] Testing Gmail Status & Disconnect Endpoints...")
-        res = await client.get("/api/v1/gmail/status", headers=clerk_headers)
-        assert res.status_code == 200
-        status_data = res.json()
-        assert status_data["connected"] is False
-        assert status_data["testing_mode"] is True
-        print("  [OK] Status reported: disconnected (zero tokens exposed)")
+        # User B starts with genuine empty state (0 subscriptions)
+        b_subs_res = await client.get("/api/v1/subscriptions", headers=headers_b)
+        assert b_subs_res.status_code == 200
+        assert len(b_subs_res.json()) == 0, f"User B should have 0 subscriptions, got {len(b_subs_res.json())}"
+        print("  [OK] User B starts with 0 subscriptions (genuine empty state)")
 
-        res = await client.post("/api/v1/gmail/disconnect", headers=clerk_headers)
-        assert res.status_code == 200
-        assert res.json()["success"] is True
-        print("  [OK] Gmail disconnect succeeded cleanly")
+        # User B cannot access, modify, or delete User A's subscription
+        res_unauth_get = await client.get(f"/api/v1/subscriptions/{sub_a_id}", headers=headers_b)
+        assert res_unauth_get.status_code == 404, "User B must not read User A subscription"
+        res_unauth_patch = await client.patch(f"/api/v1/subscriptions/{sub_a_id}", json={"amount": 0.01}, headers=headers_b)
+        assert res_unauth_patch.status_code == 404, "User B must not modify User A subscription"
+        res_unauth_del = await client.delete(f"/api/v1/subscriptions/{sub_a_id}", headers=headers_b)
+        assert res_unauth_del.status_code == 404, "User B must not delete User A subscription"
+        print("  [OK] User B strictly isolated from User A (zero data cross-talk: 404 on GET/PATCH/DELETE)")
+
+        # Clean up User A subscription
+        del_a = await client.delete(f"/api/v1/subscriptions/{sub_a_id}", headers=clerk_headers)
+        assert del_a.status_code == 204
+        print("  [OK] User A test record cleaned up")
+
+        # 13. Quarterly Recurrence & Spend Insights
+        print("\n[13] Testing Quarterly Billing Engine & Spend Calculation...")
+        d_base = date(2026, 1, 15)
+        d_next = RenewalEngine.calculate_next_renewal_date(d_base, "quarter", 1)
+        assert d_next.year == 2026 and d_next.month == 4 and d_next.day == 15, f"Expected 2026-04-15, got {d_next}"
+        print(f"  [OK] Quarterly renewal (+3 months): {d_base.strftime('%Y-%m-%d')} -> {d_next.strftime('%Y-%m-%d')}")
+
+        # Create a quarterly subscription for clerk user
+        q_res = await client.post("/api/v1/subscriptions", json={
+            "provider_name": "Quarterly SaaS",
+            "plan_name": "Pro Team",
+            "amount": 30.00,
+            "currency": "USD",
+            "interval_unit": "quarter",
+            "interval_count": 1,
+            "category": "Software & Productivity",
+            "next_renewal_date": "2026-06-01"
+        }, headers=clerk_headers)
+        assert q_res.status_code == 201, f"Quarterly creation failed: {q_res.text}"
+        q_id = q_res.json()["id"]
+
+        spend_res = await client.get("/api/v1/subscriptions/insights/summary", headers=clerk_headers)
+        assert spend_res.status_code == 200, f"Spend insights failed: {spend_res.text}"
+        spend_data = spend_res.json()
+        # 30.00 / 3 months = 10.00 / mo
+        assert abs(spend_data["total_monthly_normalized"] - 10.00) < 0.01, f"Expected 10.00 monthly spend for 30 quarterly, got {spend_data['total_monthly_normalized']}"
+        print(f"  [OK] Quarterly spend normalized to monthly: $30/quarter -> ${spend_data['total_monthly_normalized']:.2f}/mo")
+
+        # Clean up quarterly record
+        await client.delete(f"/api/v1/subscriptions/{q_id}", headers=clerk_headers)
 
         print("\n==================================================")
-        print("ALL BACKEND & CLOUD DATABASE TESTS PASSED (14/14)!")
+        print("ALL BACKEND & MULTI-USER ISOLATION TESTS PASSED (13/13)!")
         print("==================================================")
 
 if __name__ == "__main__":

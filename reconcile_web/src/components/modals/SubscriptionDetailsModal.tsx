@@ -133,9 +133,9 @@ export const SubscriptionDetailsModal: React.FC<SubscriptionDetailsModalProps> =
               </div>
 
               <div className="p-3 rounded-xl bg-white border border-[#E5E0D8]">
-                <span className="text-[#737373] block mb-0.5">Discovery Source</span>
+                <span className="text-[#737373] block mb-0.5">Management Source</span>
                 <span className="font-bold text-[#171717] capitalize">
-                  {subscription.provenance === 'gmail' ? 'Gmail Detection' : 'Manual Entry'}
+                  Manual Entry
                 </span>
               </div>
 

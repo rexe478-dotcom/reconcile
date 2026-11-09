@@ -21,9 +21,7 @@ interface SettingsTabProps {
   subscriptions: Subscription[];
   onOpenAuth: () => void;
   onLogout: () => void;
-  onOpenGmail: () => void;
   onOpenNotifications: () => void;
-  onResetDemo: () => void;
   onOpenOnboarding: () => void;
   showToast: (msg: string) => void;
 }
@@ -34,9 +32,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   subscriptions,
   onOpenAuth,
   onLogout,
-  onOpenGmail,
   onOpenNotifications,
-  onResetDemo,
   onOpenOnboarding,
   showToast,
 }) => {
@@ -248,50 +244,27 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         </div>
       </div>
 
-      {/* Connected Services: Push Alerts & Gmail Discovery */}
+      {/* Connected Services: Push Alerts */}
       <div className="p-6 bg-white rounded-3xl border border-[#E5E0D8] space-y-4 shadow-xs">
         <h2 className="text-base font-bold text-[#171717] flex items-center gap-2">
-          <Mail className="w-4 h-4 text-[#3D5438]" />
-          <span>Connected Services & Inbox Discovery</span>
+          <Bell className="w-4 h-4 text-[#3D5438]" />
+          <span>Alerts & Notification Preferences</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div 
-            onClick={onOpenNotifications}
-            className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] hover:border-[#3D5438] transition-all cursor-pointer space-y-2 card-lift"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-sm text-[#171717]">Browser Push Alerts</span>
-              <Bell className="w-4 h-4 text-[#3D5438]" />
-            </div>
-            <p className="text-[#737373]">
-              Receive native device notifications before your subscriptions renew.
-            </p>
-            <span className="text-[11px] font-bold text-[#3D5438] block pt-1">
-              Open Notification Center &rarr;
-            </span>
+        <div 
+          onClick={onOpenNotifications}
+          className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] hover:border-[#3D5438] transition-all cursor-pointer space-y-2 card-lift"
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-sm text-[#171717]">Browser Push Alerts</span>
+            <Bell className="w-4 h-4 text-[#3D5438]" />
           </div>
-
-          <div 
-            onClick={onOpenGmail}
-            className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E5E0D8] hover:border-[#3D5438] transition-all cursor-pointer space-y-2 card-lift"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-[#171717]">Gmail Receipt Discovery</span>
-                <span className="text-[10px] font-bold text-[#858477] bg-white px-2 py-0.5 rounded-full border border-[#E5E0D5]">
-                  Testing Mode
-                </span>
-              </div>
-              <Mail className="w-4 h-4 text-[#EA4335]" />
-            </div>
-            <p className="text-[#737373]">
-              Optionally connect your Google account to scan invoices with read-only permission. Credentials are kept securely on the backend.
-            </p>
-            <span className="text-[11px] font-bold text-[#3D5438] block pt-1">
-              Open Gmail Scanner &rarr;
-            </span>
-          </div>
+          <p className="text-[#737373] text-xs">
+            Receive native device notifications before your subscriptions renew. Configure sound, badges, and lead timing.
+          </p>
+          <span className="text-[11px] font-bold text-[#3D5438] block pt-1">
+            Open Notification Center &rarr;
+          </span>
         </div>
       </div>
 
@@ -302,7 +275,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           <span>Data Portability & Backup</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             onClick={() => {
               downloadCalendarIcs(subscriptions);
@@ -322,15 +295,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             <Download className="w-4 h-4 text-[#3D5438]" />
             <span className="text-xs font-bold text-[#171717]">Export Data (.CSV)</span>
             <span className="text-[10px] text-[#737373]">Full spreadsheet backup</span>
-          </button>
-
-          <button
-            onClick={onResetDemo}
-            className="p-3.5 rounded-2xl bg-red-50/50 border border-red-200 hover:border-red-400 transition-all flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer btn-tactile"
-          >
-            <Trash2 className="w-4 h-4 text-red-500" />
-            <span className="text-xs font-bold text-red-600">Reset Demo Data</span>
-            <span className="text-[10px] text-[#737373]">Restore default starter sample</span>
           </button>
         </div>
       </div>

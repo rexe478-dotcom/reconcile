@@ -42,6 +42,14 @@ class RenewalEngine:
             target_day = min(anchor, max_days)
             return date(target_year, target_month, target_day)
 
+        elif interval_unit == "quarter":
+            total_months = current_renewal_date.month - 1 + (count * 3)
+            target_year = current_renewal_date.year + (total_months // 12)
+            target_month = (total_months % 12) + 1
+            max_days = cls.days_in_month(target_year, target_month)
+            target_day = min(anchor, max_days)
+            return date(target_year, target_month, target_day)
+
         elif interval_unit == "year":
             target_year = current_renewal_date.year + count
             target_month = current_renewal_date.month

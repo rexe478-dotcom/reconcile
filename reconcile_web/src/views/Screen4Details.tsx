@@ -84,11 +84,9 @@ export const Screen4Details: React.FC<Screen4DetailsProps> = ({
 
         {/* Provenance Row */}
         <div className="bg-white rounded-2xl p-3.5 border border-[#E5E0D8]/70 flex items-center gap-2.5 shadow-xs">
-          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-            <path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.5l8.073-6.007c1.618-1.214 3.927-.059 3.927 1.964z" />
-          </svg>
+          <span className="w-2 h-2 rounded-full bg-[#3D5438]" />
           <span className="text-xs font-bold text-[#171717]">
-            Found in Gmail
+            Manual Entry
           </span>
         </div>
 

@@ -49,6 +49,14 @@ export class RenewalEngine {
         day = Math.min(anchor, maxDay);
         return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       }
+      case 'quarter': {
+        const totalMonths = month + subscription.intervalCount * 3;
+        year += Math.floor((totalMonths - 1) / 12);
+        month = ((totalMonths - 1) % 12) + 1;
+        const maxDay = this.getDaysInMonth(year, month);
+        day = Math.min(anchor, maxDay);
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
       case 'year': {
         year += subscription.intervalCount;
         const maxDay = this.getDaysInMonth(year, month);

@@ -33,13 +33,14 @@ class TokenResponse(BaseModel):
 class SubscriptionBase(BaseModel):
     provider_name: str
     plan_name: Optional[str] = None
+    category: Optional[str] = "General"
     amount: float = Field(..., ge=0)
     currency: str = "₦"
-    interval_unit: str = "month"  # month, year, week, day
+    interval_unit: str = "month"  # month, year, week, day, quarter
     interval_count: int = 1
     next_renewal_date: date
     status: str = "active"  # active, needs_review, cancelled, paused
-    source: str = "manual"  # manual, gmail
+    source: str = "manual"  # manual
     reminder_enabled: bool = True
     notes: Optional[str] = None
     last_payment_date: Optional[date] = None
@@ -52,6 +53,7 @@ class SubscriptionCreate(SubscriptionBase):
 class SubscriptionUpdate(BaseModel):
     provider_name: Optional[str] = None
     plan_name: Optional[str] = None
+    category: Optional[str] = None
     amount: Optional[float] = Field(None, ge=0)
     currency: Optional[str] = None
     interval_unit: Optional[str] = None
@@ -120,38 +122,4 @@ class ClerkSyncRequest(BaseModel):
     email: EmailStr
     preferred_timezone: Optional[str] = "UTC"
 
-# ----------------- Gmail OAuth & Sync Schemas -----------------
-class GmailAuthUrlResponse(BaseModel):
-    auth_url: str
-    testing_mode: bool = True
-    verification_notice: str
-
-class GmailStatusResponse(BaseModel):
-    connected: bool
-    email: Optional[str] = None
-    last_sync_at: Optional[datetime] = None
-    testing_mode: bool = True
-    notice: str
-
-class GmailDisconnectResponse(BaseModel):
-    success: bool
-    message: str
-
-class GmailCandidateSubscription(BaseModel):
-    id: str
-    provider_name: str
-    plan_name: Optional[str] = None
-    amount: float
-    currency: str = "₦"
-    interval_unit: str = "month"
-    interval_count: int = 1
-    next_renewal_date: date
-    detected_from: str
-    snippet: Optional[str] = None
-
-class GmailSyncResponse(BaseModel):
-    synced_at: datetime
-    found_count: int
-    candidates: List[GmailCandidateSubscription]
-    notice: str
 

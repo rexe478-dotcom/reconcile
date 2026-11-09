@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Subscription } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
+import { MascotLogo } from '../components/common/MascotLogo';
 import { InsightsCalculator } from '../services/insightsCalculator';
 
 interface DashboardTabProps {
@@ -119,16 +120,38 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
       </div>
 
-      {/* Hero Financial Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card 1: Monthly Total */}
-        <div className="p-5 rounded-3xl bg-white border border-[#E5E0D8] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#737373] uppercase tracking-wider">Monthly Spend</span>
-            <div className="p-2 rounded-xl bg-[#E2EBD8]/60 text-[#3D5438]">
-              <BarChart2 className="w-4 h-4" />
-            </div>
+      {/* Content: Empty State vs Active Dashboard */}
+      {subscriptions.length === 0 ? (
+        <div className="py-12 px-6 sm:px-12 rounded-3xl bg-white border border-[#E5E0D8] shadow-xs text-center flex flex-col items-center justify-center space-y-5 my-4">
+          <MascotLogo pose="standing" size={76} interactive={true} className="mx-auto drop-shadow-xs" />
+          <div className="max-w-md space-y-2">
+            <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight">
+              Your subscriptions, all in one place.
+            </h2>
+            <p className="text-xs sm:text-sm text-[#737373] leading-relaxed">
+              You haven't added any subscriptions yet. Start by adding the services you currently pay for, and Reconcile will help you keep track of their renewal dates.
+            </p>
           </div>
+          <button
+            onClick={onAddSubscription}
+            className="min-h-[46px] px-6 py-2.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-sm btn-tactile transition-all"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Add your first subscription</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Hero Financial Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Card 1: Monthly Total */}
+            <div className="p-5 rounded-3xl bg-white border border-[#E5E0D8] shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#737373] uppercase tracking-wider">Monthly Spend</span>
+                <div className="p-2 rounded-xl bg-[#E2EBD8]/60 text-[#3D5438]">
+                  <BarChart2 className="w-4 h-4" />
+                </div>
+              </div>
           <div className="mt-4">
             <div className="text-3xl font-black text-[#171717] tracking-tight">
               {totalMonthlyFormatted}
@@ -307,6 +330,8 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           ))}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

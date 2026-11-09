@@ -11,6 +11,7 @@ export interface ApiSubscription {
   user_id: string;
   provider_name: string;
   plan_name: string | null;
+  category?: string | null;
   amount: number;
   currency: string;
   interval_unit: string;
@@ -52,7 +53,7 @@ export function mapApiToSubscription(api: ApiSubscription): Subscription {
     intervalCount: api.interval_count ?? 1,
     nextRenewalDate: api.next_renewal_date,
     anchorDay: isNaN(dayPart) ? undefined : dayPart,
-    category: '',
+    category: api.category || 'General',
     provenance: (api.source as SubscriptionProvenance) || 'manual',
     status: (api.status as SubscriptionStatus) || 'active',
     remindersEnabled: api.reminder_enabled ?? true,
@@ -69,6 +70,7 @@ export function mapSubscriptionToApi(sub: Partial<Subscription>): Record<string,
 
   if (sub.providerName !== undefined) payload.provider_name = sub.providerName;
   if (sub.planName !== undefined) payload.plan_name = sub.planName;
+  if (sub.category !== undefined) payload.category = sub.category;
   if (sub.amount !== undefined) payload.amount = Number(sub.amount);
   if (sub.currency !== undefined) payload.currency = sub.currency;
   if (sub.interval !== undefined) payload.interval_unit = sub.interval;

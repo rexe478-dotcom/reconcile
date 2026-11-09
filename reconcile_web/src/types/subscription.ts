@@ -1,8 +1,8 @@
-export type RecurrenceInterval = 'day' | 'week' | 'month' | 'year';
+export type RecurrenceInterval = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
 export type SubscriptionStatus = 'active' | 'needs_review' | 'paused' | 'cancelled';
 
-export type SubscriptionProvenance = 'gmail' | 'manual';
+export type SubscriptionProvenance = 'manual';
 
 export interface Subscription {
   id: string;

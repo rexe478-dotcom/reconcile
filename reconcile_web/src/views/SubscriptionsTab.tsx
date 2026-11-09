@@ -298,7 +298,28 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
           );
         })}
 
-        {filteredSubscriptions.length === 0 && (
+        {subscriptions.length === 0 && (
+          <div className="py-12 px-6 sm:px-12 text-center bg-white rounded-3xl border border-[#E5E0D5] space-y-4 shadow-xs">
+            <MascotLogo pose="standing" size={76} interactive={true} className="mx-auto drop-shadow-xs" />
+            <div className="max-w-md mx-auto space-y-2">
+              <h3 className="font-black text-xl sm:text-2xl text-[#171717] tracking-tight">
+                Your subscriptions, all in one place.
+              </h3>
+              <p className="text-xs sm:text-sm text-[#737373] leading-relaxed">
+                You haven't added any subscriptions yet. Start by adding the services you currently pay for, and Reconcile will help you keep track of their renewal dates.
+              </p>
+            </div>
+            <button
+              onClick={onAddSubscription}
+              className="min-h-[46px] px-6 py-2.5 rounded-full bg-[#3D5438] hover:bg-[#32462E] text-white text-xs sm:text-sm font-bold inline-flex items-center gap-2 shadow-sm btn-tactile transition-all"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Add your first subscription</span>
+            </button>
+          </div>
+        )}
+
+        {subscriptions.length > 0 && filteredSubscriptions.length === 0 && (
           <div className="p-12 text-center bg-white rounded-3xl border border-[#E5E0D5] space-y-3">
             <MascotLogo pose="thinking" size={68} className="mx-auto" />
             <h3 className="font-bold text-base text-[#1A1A1A]">No subscriptions found</h3>

@@ -30,6 +30,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
 }) => {
   const [providerName, setProviderName] = useState('');
   const [planName, setPlanName] = useState('');
+  const [category, setCategory] = useState('General');
   const [amount, setAmount] = useState<number | ''>(4500);
   const [currency, setCurrency] = useState('NGN');
   const [interval, setInterval] = useState<RecurrenceInterval>('month');
@@ -37,12 +38,14 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
   const [nextRenewalDate, setNextRenewalDate] = useState('');
   const [status, setStatus] = useState<SubscriptionStatus>('active');
   const [remindersEnabled, setRemindersEnabled] = useState(true);
+  const [cancellationUrl, setCancellationUrl] = useState('');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (subscription) {
       setProviderName(subscription.providerName);
       setPlanName(subscription.planName);
+      setCategory(subscription.category || 'General');
       setAmount(subscription.amount);
       setCurrency(subscription.currency);
       setInterval(subscription.interval);
@@ -50,11 +53,13 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
       setNextRenewalDate(subscription.nextRenewalDate);
       setStatus(subscription.status);
       setRemindersEnabled(subscription.remindersEnabled);
+      setCancellationUrl(subscription.cancellationUrl ?? '');
       setNotes(subscription.notes ?? '');
     } else {
       // Default new subscription values
       setProviderName('');
       setPlanName('Standard Subscription');
+      setCategory('General');
       setAmount(2500);
       setCurrency('NGN');
       setInterval('month');
@@ -65,6 +70,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
       setNextRenewalDate(d.toISOString().split('T')[0]);
       setStatus('active');
       setRemindersEnabled(true);
+      setCancellationUrl('');
       setNotes('');
     }
   }, [subscription, isOpen]);
@@ -88,11 +94,12 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
       intervalCount: Number(intervalCount) || 1,
       nextRenewalDate,
       anchorDay: anchor,
-      category: 'General',
-      provenance: subscription ? subscription.provenance : 'manual',
+      category: category.trim() || 'General',
+      provenance: 'manual',
       status,
       remindersEnabled,
       reminderDaysBefore: [1, 3],
+      cancellationUrl: cancellationUrl.trim() || undefined,
       notes: notes.trim(),
       createdAt: subscription ? subscription.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -161,16 +168,35 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
             />
           </div>
 
-          {/* Plan Name */}
-          <div>
-            <label className="block text-[#171717] mb-1 font-semibold">Plan Description</label>
-            <input
-              type="text"
-              value={planName}
-              onChange={(e) => setPlanName(e.target.value)}
-              placeholder="e.g. Premium Family, Pro Tier"
-              className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
-            />
+          {/* Category & Plan Name */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[#171717] mb-1 font-semibold">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
+              >
+                <option value="General">General</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Software & Productivity">Software & Productivity</option>
+                <option value="Cloud & Utilities">Cloud & Utilities</option>
+                <option value="Fitness & Health">Fitness & Health</option>
+                <option value="Personal">Personal</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[#171717] mb-1 font-semibold">Plan Description</label>
+              <input
+                type="text"
+                value={planName}
+                onChange={(e) => setPlanName(e.target.value)}
+                placeholder="e.g. Premium Family, Pro Tier"
+                className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
+              />
+            </div>
           </div>
 
           {/* Price & Currency */}
@@ -214,6 +240,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
                 className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               >
                 <option value="month">Monthly</option>
+                <option value="quarter">Quarterly (3 Months)</option>
                 <option value="year">Annual / Yearly</option>
                 <option value="week">Weekly</option>
                 <option value="day">Daily</option>
@@ -230,6 +257,18 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
                 className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
               />
             </div>
+          </div>
+
+          {/* Cancellation Page URL */}
+          <div>
+            <label className="block text-[#171717] mb-1 font-semibold">Cancellation Page URL (Optional)</label>
+            <input
+              type="url"
+              value={cancellationUrl}
+              onChange={(e) => setCancellationUrl(e.target.value)}
+              placeholder="https://www.netflix.com/youraccount"
+              className="w-full min-h-[44px] bg-white border border-[#E5E0D8] rounded-xl px-3.5 py-2.5 text-[#171717] text-sm focus:outline-hidden focus:border-[#3D5438] focus:ring-2 focus:ring-[#3D5438]/20 transition-all"
+            />
           </div>
 
           {/* Status & Reminders */}
