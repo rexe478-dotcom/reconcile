@@ -54,6 +54,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
       header: 'hidden',
       headerTitle: 'hidden',
       headerSubtitle: 'hidden',
+      developmentBadge: 'hidden',
       socialButtonsBlockButton: 'hidden',
       socialButtonsBlockButtonText: 'hidden',
       dividerRow: 'hidden',
