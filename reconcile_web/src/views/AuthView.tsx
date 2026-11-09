@@ -48,75 +48,58 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const clerkAppearance = {
     elements: {
       rootBox: 'w-full flex justify-center',
-      card: 'w-full shadow-none border-0 p-0 bg-transparent text-[#171717]',
+      cardBox: 'w-full shadow-none border-0 p-0 bg-transparent',
+      card: 'w-full shadow-none border-0 p-0 bg-transparent text-[#1A1A1A]',
+      main: 'w-full flex flex-col',
       header: 'hidden',
       headerTitle: 'hidden',
       headerSubtitle: 'hidden',
-      footerAction: 'hidden',
-      socialButtonsBlockButton: 'min-h-[44px] border border-[#E5E0D8] bg-white hover:bg-[#FAF8F5] text-xs font-bold text-[#171717] rounded-xl shadow-2xs py-2.5 transition-all flex items-center justify-center gap-2 cursor-pointer',
-      socialButtonsBlockButtonText: 'text-xs font-bold text-[#171717]',
-      formButtonPrimary: 'min-h-[44px] bg-[#3D5438] hover:bg-[#32462E] active:scale-[0.98] text-white font-black text-xs rounded-xl py-3 shadow-xs transition-all cursor-pointer',
-      formFieldInput: 'min-h-[42px] rounded-xl border border-[#E5E0D8] bg-white text-xs text-[#171717] px-3.5 focus:ring-2 focus:ring-[#3D5438]/20 focus:border-[#3D5438] transition-all',
-      formFieldLabel: 'text-xs font-bold text-[#171717] mb-1 block',
-      footerActionLink: 'text-[#3D5438] hover:underline font-bold text-xs',
-      dividerLine: 'bg-[#E5E0D8]',
-      dividerText: 'text-[11px] text-[#737373] uppercase font-semibold tracking-wide',
-      footer: 'pt-1 text-center text-xs text-[#737373]'
+      socialButtonsBlockButton: 'w-full min-h-[44px] rounded-xl border border-[#E5E0D5] bg-white hover:bg-[#FAF8F5] text-xs font-bold text-[#1A1A1A] shadow-2xs py-2.5 transition-all flex items-center justify-center gap-2 cursor-pointer',
+      socialButtonsBlockButtonText: 'text-xs font-bold text-[#1A1A1A]',
+      dividerRow: 'my-3 flex items-center',
+      dividerLine: 'bg-[#E5E0D5]',
+      dividerText: 'text-[11px] font-bold text-[#858477] uppercase tracking-wider px-2',
+      form: 'w-full space-y-3',
+      formField: 'w-full space-y-1.5 text-left',
+      formFieldLabel: 'text-xs font-bold text-[#1A1A1A] block text-left leading-tight',
+      formFieldInput: 'w-full min-h-[42px] px-3.5 rounded-xl border border-[#E5E0D5] bg-white text-xs text-[#1A1A1A] focus:ring-2 focus:ring-[#3D5438]/20 focus:border-[#3D5438] transition-all',
+      formButtonPrimary: 'w-full min-h-[44px] bg-[#3D5438] hover:bg-[#32462E] active:scale-[0.98] text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer mt-1',
+      footerAction: 'pt-2.5 text-center text-xs text-[#858477]',
+      footerActionText: 'text-xs text-[#858477]',
+      footerActionLink: 'text-[#3D5438] hover:underline font-bold text-xs ml-1',
+      identityPreview: 'text-xs font-bold text-[#1A1A1A]',
+      footer: 'pt-1 text-center text-xs text-[#858477]'
     },
     variables: {
       colorPrimary: '#3D5438',
-      colorText: '#171717',
+      colorText: '#1A1A1A',
       colorBackground: '#FFFFFF',
       colorInputBackground: '#FFFFFF',
-      colorInputText: '#171717',
+      colorInputText: '#1A1A1A',
       borderRadius: '0.75rem',
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }
   };
 
   return (
-    <div className="w-full space-y-4 animate-in fade-in duration-200">
-      {/* Official Brand Logo Mark */}
+    <div className="w-full space-y-3 animate-in fade-in duration-200">
+      {/* Streamlined Compact Brand Header */}
       <div className="text-center space-y-1 pb-1">
-        <ReconcileLogo variant="mark" size={52} className="mx-auto" />
-        <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight mt-1">
-          {authMode === 'signin' ? 'Welcome Back' : 'Create Free Account'}
+        <div className="flex justify-center mb-1">
+          <ReconcileLogo variant="horizontal" size={28} />
+        </div>
+        <h2 className="text-xl font-black text-[#1A1A1A] tracking-tight">
+          {authMode === 'signin' ? 'Sign in to Reconcile' : 'Create your free account'}
         </h2>
-        <p className="text-xs text-[#858477] max-w-xs mx-auto">
+        <p className="text-xs text-[#858477]">
           {authMode === 'signin' 
-            ? 'Sign in to sync your subscriptions and renewal alerts.' 
-            : 'Join Reconcile to track renewals and eliminate surprise charges.'}
+            ? 'Access your subscriptions and renewal alerts.' 
+            : 'Track renewals and eliminate surprise charges.'}
         </p>
       </div>
 
-      {/* Top Segmented Mode Switcher */}
-      <div className="flex bg-[#F5F3ED] p-1 rounded-2xl border border-[#E5E0D5] text-xs font-bold">
-        <button
-          type="button"
-          onClick={() => handleSwitchMode('signin')}
-          className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
-            authMode === 'signin'
-              ? 'bg-white text-[#1A1A1A] shadow-2xs font-black'
-              : 'text-[#858477] hover:text-[#1A1A1A]'
-          }`}
-        >
-          Sign In
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSwitchMode('signup')}
-          className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
-            authMode === 'signup'
-              ? 'bg-white text-[#1A1A1A] shadow-2xs font-black'
-              : 'text-[#858477] hover:text-[#1A1A1A]'
-          }`}
-        >
-          Create Account
-        </button>
-      </div>
-
       {/* Primary Auth: Clerk Google & Email Authentication */}
-      <div className="w-full flex justify-center min-h-[300px]">
+      <div className="w-full flex justify-center">
         {authMode === 'signin' ? (
           <SignIn
             routing="hash"
