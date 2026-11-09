@@ -119,3 +119,14 @@ body {
   }
 }
 
+/* Hide Clerk development mode badge / watermarks */
+.cl-development-badge,
+[data-localization-key="developmentMode"],
+div[class*="cl-development-badge"],
+div[class*="cl-internal-ph317s"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
