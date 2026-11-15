@@ -14,6 +14,8 @@ import { Subscription, SubscriptionStatus } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
 import { InsightsCalculator } from '../services/insightsCalculator';
 import { MascotLogo } from '../components/common/MascotLogo';
+import { LottiePlayer } from '../components/common/LottiePlayer';
+import emptySubscriptionsAnim from '../assets/animations/empty_subscriptions.json';
 
 interface SubscriptionsTabProps {
   subscriptions: Subscription[];
@@ -300,7 +302,16 @@ export const SubscriptionsTab: React.FC<SubscriptionsTabProps> = ({
 
         {subscriptions.length === 0 && (
           <div className="py-12 px-6 sm:px-12 text-center bg-white rounded-3xl border border-[#E5E0D5] space-y-4 shadow-xs">
-            <MascotLogo pose="standing" size={76} interactive={true} className="mx-auto drop-shadow-xs" />
+            <div className="w-48 h-48 sm:w-56 sm:h-56 mx-auto flex items-center justify-center relative">
+              <div className="absolute inset-2 rounded-full bg-[#E2EBD8]/35 filter blur-lg -z-0 pointer-events-none" />
+              <LottiePlayer
+                animationData={emptySubscriptionsAnim}
+                loop={true}
+                autoplay={true}
+                className="w-full h-full relative z-10"
+                ariaLabel="Add your first subscription illustration"
+              />
+            </div>
             <div className="max-w-md mx-auto space-y-2">
               <h3 className="font-black text-xl sm:text-2xl text-[#171717] tracking-tight">
                 Your subscriptions, all in one place.

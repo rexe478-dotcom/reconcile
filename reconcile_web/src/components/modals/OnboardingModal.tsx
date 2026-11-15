@@ -1,6 +1,9 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowRight, Check, X, Bell, Calendar, Sparkles } from 'lucide-react';
 import { ReconcileLogo } from '../common/ReconcileLogo';
+import { LottiePlayer } from '../common/LottiePlayer';
+import onboardingCalendarAnim from '../../assets/animations/onboarding_calendar.json';
+import bellPulseAnim from '../../assets/animations/bell_pulse.json';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -102,17 +105,19 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 </p>
               </div>
 
-              {/* Character Illustration with Soft Green Halo */}
-              <div className="relative w-44 h-48 sm:w-48 sm:h-52 my-2 flex items-center justify-center">
+              {/* Lottie Animated Calendar Illustration */}
+              <div className="relative w-44 h-44 sm:w-48 sm:h-48 my-2 flex items-center justify-center">
                 {/* Soft accent halo background */}
                 <div className="absolute w-40 h-40 sm:w-44 sm:h-44 rounded-full bg-[#A5C96B]/25 filter blur-xs -z-0" />
                 <div className="absolute -top-1 -right-1 text-[#A5C96B] font-bold text-lg select-none">
                   ✦
                 </div>
-                <img
-                  src="./assets/mascot/mascot-holding-phone.png"
-                  alt="Reconcile Mascot holding phone"
-                  className="relative z-10 w-full h-full object-contain select-none pointer-events-none drop-shadow-xs"
+                <LottiePlayer
+                  animationData={onboardingCalendarAnim}
+                  loop={true}
+                  autoplay={true}
+                  className="w-full h-full relative z-10"
+                  ariaLabel="Renewal Calendar Animation"
                 />
               </div>
 
@@ -183,13 +188,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                 </p>
               </div>
 
-              {/* Visual: Green Bell Illustration with Glowing Soft Aura */}
+              {/* Visual: Lottie Animated Bell Pulse Illustration */}
               <div className="relative w-44 h-40 my-1 flex items-center justify-center">
                 <div className="absolute w-36 h-36 rounded-full bg-[#A5C96B]/25 filter blur-xs -z-0" />
-                <img
-                  src="./assets/illustrations/notification.png"
-                  alt="Renewal Bell Notification"
-                  className="relative z-10 w-28 h-28 object-contain select-none pointer-events-none drop-shadow-xs"
+                <LottiePlayer
+                  animationData={bellPulseAnim}
+                  loop={true}
+                  autoplay={true}
+                  className="w-36 h-36 relative z-10"
+                  ariaLabel="Renewal Reminder Notification Bell"
                 />
               </div>
 

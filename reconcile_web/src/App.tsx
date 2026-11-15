@@ -21,6 +21,9 @@ import { SubscriptionApi } from './services/subscriptionApi';
 import { NotificationService } from './services/notificationService';
 import { MascotLogo } from './components/common/MascotLogo';
 import { ReconcileLogo } from './components/common/ReconcileLogo';
+import { LottiePlayer } from './components/common/LottiePlayer';
+import appPreloaderAnim from './assets/animations/app_preloader.json';
+import successCelebrationAnim from './assets/animations/success_celebration.json';
 
 // Tabs & Modals
 import { DashboardTab } from './views/DashboardTab';
@@ -225,8 +228,19 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-[#F5F3ED] text-[#1A1A1A] flex flex-col font-sans selection:bg-[#EBF3DF] selection:text-[#3D5438]">
       {/* Toast Feedback Notification Banner */}
       {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-[#1A1A1A] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in duration-200">
-          <span className="w-2 h-2 rounded-full bg-[#A5C96B]" />
+        <div className="fixed top-4 right-4 z-50 bg-[#1A1A1A] text-white text-xs font-bold py-2.5 px-4 rounded-2xl shadow-xl flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200 border border-white/10">
+          <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+            {toastMessage.toLowerCase().includes('saved') ? (
+              <LottiePlayer
+                animationData={successCelebrationAnim}
+                loop={false}
+                autoplay={true}
+                className="w-5 h-5"
+              />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-[#A5C96B]" />
+            )}
+          </div>
           <span>{toastMessage}</span>
         </div>
       )}

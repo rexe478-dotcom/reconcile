@@ -4,6 +4,8 @@ import { Subscription } from '../../types/subscription';
 import { NotificationService } from '../../services/notificationService';
 import { BrandIcon } from '../common/BrandIcon';
 import { InsightsCalculator } from '../../services/insightsCalculator';
+import { LottiePlayer } from '../common/LottiePlayer';
+import bellPulseAnim from '../../assets/animations/bell_pulse.json';
 
 interface NotificationCenterModalProps {
   isOpen: boolean;
@@ -51,7 +53,13 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D5]">
           <div className="flex items-center gap-2.5">
-            <img src="./assets/illustrations/notification.png" alt="Bell" className="w-9 h-9 object-contain shrink-0" />
+            <LottiePlayer
+              animationData={bellPulseAnim}
+              loop={true}
+              autoplay={true}
+              className="w-10 h-10 shrink-0"
+              ariaLabel="Notification Bell Animation"
+            />
             <div>
               <h3 className="font-extrabold text-base text-[#1A1A1A]">Notifications</h3>
               <p className="text-xs text-[#858477]">Renewal Alerts & Permissions</p>
@@ -116,8 +124,22 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           </div>
 
           {alerts.length === 0 ? (
-            <div className="p-4 bg-white rounded-2xl border border-[#E5E0D8] text-center text-xs text-[#737373]">
-              No subscription renewals due in the next 14 days.
+            <div className="py-6 px-4 bg-white rounded-2xl border border-[#E5E0D8] text-center space-y-2.5">
+              <div className="w-20 h-20 mx-auto flex items-center justify-center">
+                <LottiePlayer
+                  animationData={bellPulseAnim}
+                  loop={true}
+                  autoplay={true}
+                  className="w-full h-full"
+                  ariaLabel="Calm notification bell"
+                />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-[#171717]">All Caught Up!</p>
+                <p className="text-[11px] text-[#737373] max-w-xs mx-auto">
+                  No subscription renewals due in the next 14 days. We'll alert you 1–3 days before renewals.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-1.5">

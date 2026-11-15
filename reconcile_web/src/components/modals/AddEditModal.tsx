@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Check, AlertCircle } from 'lucide-react';
 import { Subscription, RecurrenceInterval, SubscriptionStatus } from '../../types/subscription';
+import { LottiePlayer } from '../common/LottiePlayer';
+import successCelebrationAnim from '../../assets/animations/success_celebration.json';
 
 interface AddEditModalProps {
   subscription: Subscription | null; // null if adding new
@@ -40,6 +42,7 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [cancellationUrl, setCancellationUrl] = useState('');
   const [notes, setNotes] = useState('');
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     if (subscription) {
@@ -105,8 +108,12 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
       updatedAt: new Date().toISOString(),
     };
 
-    onSave(newSub);
-    onClose();
+    setShowCelebration(true);
+    setTimeout(() => {
+      onSave(newSub);
+      setShowCelebration(false);
+      onClose();
+    }, 750);
   };
 
   return (
@@ -121,6 +128,27 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
         {/* Mobile Sheet Drag Handle */}
         <div className="sm:hidden w-12 h-1.5 bg-[#D5CEBF] rounded-full mx-auto -mt-2 mb-2" />
 
+        {showCelebration ? (
+          <div className="py-10 flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in duration-200">
+            <div className="w-36 h-36 mx-auto relative flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-[#E2EBD8]/50 filter blur-md" />
+              <LottiePlayer
+                animationData={successCelebrationAnim}
+                loop={false}
+                autoplay={true}
+                className="w-full h-full relative z-10"
+                ariaLabel="Celebration Checkmark"
+              />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-lg font-black text-[#171717]">Subscription Saved!</h4>
+              <p className="text-xs text-[#737373]">
+                {providerName || 'Service'} added to your renewal ledger.
+              </p>
+            </div>
+          </div>
+        ) : (
+        <>
         <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D8]">
           <h3 className="font-extrabold text-lg text-[#171717]">
             {subscription ? 'Edit Subscription' : 'Add New Subscription'}
@@ -348,6 +376,8 @@ export const AddEditModal: React.FC<AddEditModalProps> = ({
             </div>
           </div>
         </form>
+        </>
+        )}
       </div>
     </div>
   );

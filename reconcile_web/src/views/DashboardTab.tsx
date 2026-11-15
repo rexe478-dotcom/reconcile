@@ -16,6 +16,8 @@ import {
 import { Subscription } from '../types/subscription';
 import { BrandIcon } from '../components/common/BrandIcon';
 import { MascotLogo } from '../components/common/MascotLogo';
+import { LottiePlayer } from '../components/common/LottiePlayer';
+import emptySubscriptionsAnim from '../assets/animations/empty_subscriptions.json';
 import { InsightsCalculator } from '../services/insightsCalculator';
 
 interface DashboardTabProps {
@@ -123,7 +125,16 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       {/* Content: Empty State vs Active Dashboard */}
       {subscriptions.length === 0 ? (
         <div className="py-12 px-6 sm:px-12 rounded-3xl bg-white border border-[#E5E0D8] shadow-xs text-center flex flex-col items-center justify-center space-y-5 my-4">
-          <MascotLogo pose="standing" size={76} interactive={true} className="mx-auto drop-shadow-xs" />
+          <div className="w-48 h-48 sm:w-56 sm:h-56 mx-auto flex items-center justify-center relative">
+            <div className="absolute inset-2 rounded-full bg-[#E2EBD8]/35 filter blur-lg -z-0 pointer-events-none" />
+            <LottiePlayer
+              animationData={emptySubscriptionsAnim}
+              loop={true}
+              autoplay={true}
+              className="w-full h-full relative z-10"
+              ariaLabel="No subscriptions illustration"
+            />
+          </div>
           <div className="max-w-md space-y-2">
             <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight">
               Your subscriptions, all in one place.
