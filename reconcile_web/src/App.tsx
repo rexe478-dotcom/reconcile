@@ -3,8 +3,6 @@ import { useUser, useClerk } from '@clerk/react';
 import { 
   Plus, 
   Bell, 
-  Cloud, 
-  CloudOff, 
   Calendar as CalendarIcon, 
   CreditCard, 
   LayoutDashboard, 
@@ -25,7 +23,8 @@ import { LottiePlayer } from './components/common/LottiePlayer';
 import appPreloaderAnim from './assets/animations/app_preloader.json';
 import successCelebrationAnim from './assets/animations/success_celebration.json';
 
-// Tabs & Modals
+// Tabs & Views
+import { Screen1Onboarding } from './views/Screen1Onboarding';
 import { DashboardTab } from './views/DashboardTab';
 import { SubscriptionsTab } from './views/SubscriptionsTab';
 import { CalendarTab } from './views/CalendarTab';
@@ -37,17 +36,47 @@ import { NotificationCenterModal } from './components/modals/NotificationCenterM
 import { OnboardingModal } from './components/modals/OnboardingModal';
 import { AuthView } from './views/AuthView';
 
-type AppTab = 'dashboard' | 'subscriptions' | 'calendar' | 'settings';
+export type AppTab = 'onboarding' | 'dashboard' | 'subscriptions' | 'calendar' | 'settings';
 
 export const App: React.FC = () => {
-  // Navigation
-  const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
+  // Startup Loading Preloader Splash (Always plays for 1.8s or until user skips)
+  const [isPreloading, setIsPreloading] = useState<boolean>(true);
+  const [preloadProgress, setPreloadProgress] = useState<number>(15);
 
-  // Interactive Onboarding Tour (Auto-opens on first visit, or accessible anytime from Settings/Dashboard)
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return !localStorage.getItem('reconcile_onboarding_completed');
+  useEffect(() => {
+    const startTime = Date.now();
+    const duration = 1800;
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(100, Math.round((elapsed / duration) * 100));
+      setPreloadProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsPreloading(false);
+        }, 200);
+      }
+    }, 40);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Navigation tab state: defaults to 'onboarding' for new visitors or users with 0 subscriptions
+  const [activeTab, setActiveTab] = useState<AppTab>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('tab') === 'onboarding') return 'onboarding';
+      if (!localStorage.getItem('reconcile_onboarding_completed')) {
+        return 'onboarding';
+      }
+    }
+    return 'dashboard';
   });
+
+  // Interactive Onboarding Tour Modal
+  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState<boolean>(false);
 
   // Clerk Auth Integration
   const { user: clerkUser, isSignedIn: isClerkSignedIn } = useUser();
@@ -73,7 +102,6 @@ export const App: React.FC = () => {
       setIsAuthenticated(true);
       setShowAuthModal(false);
 
-      // Sync Clerk user with backend database to obtain valid backend JWT
       AuthService.syncClerkUser(clerkUser.id, email).catch((err) => {
         console.warn('Backend Clerk sync notice:', err);
       });
@@ -226,6 +254,65 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F3ED] text-[#1A1A1A] flex flex-col font-sans selection:bg-[#EBF3DF] selection:text-[#3D5438]">
+      {/* 1. Full-Screen Lottie Startup Preloader Splash */}
+      {isPreloading && (
+        <div 
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#FAF8F5] transition-opacity duration-300"
+          role="status"
+          aria-label="Loading Reconcile"
+          onClick={() => setIsPreloading(false)}
+        >
+          <div 
+            className="flex flex-col items-center max-w-xs w-full px-6 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300 select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Lottie Animated Preloader */}
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+              <LottiePlayer
+                animationData={appPreloaderAnim}
+                loop={true}
+                autoplay={true}
+                className="w-full h-full"
+                ariaLabel="Reconcile startup loading animation"
+              />
+            </div>
+
+            {/* Brand & Loading Status */}
+            <div className="space-y-1.5 -mt-2">
+              <div className="flex items-center justify-center gap-2">
+                <MascotLogo size={26} className="shadow-xs" />
+                <span className="font-extrabold tracking-[0.25em] text-sm text-[#171717]">
+                  RECONCILE
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-[#737373]">
+                {preloadProgress < 50
+                  ? 'Securing recurring subscriptions...'
+                  : preloadProgress < 90
+                  ? 'Preparing offline vault...'
+                  : 'Ready!'}
+              </p>
+            </div>
+
+            {/* Sleek Progress Bar */}
+            <div className="w-52 h-1.5 bg-[#E5E0D8] rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-[#3D5438] rounded-full transition-all duration-100 ease-out"
+                style={{ width: `${preloadProgress}%` }}
+              />
+            </div>
+
+            {/* Skip Button */}
+            <button
+              onClick={() => setIsPreloading(false)}
+              className="text-[11px] font-bold text-[#737373] hover:text-[#171717] px-3.5 py-1 rounded-full hover:bg-[#E5E0D8]/60 transition-colors cursor-pointer"
+            >
+              Tap anywhere or Skip →
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Toast Feedback Notification Banner */}
       {toastMessage && (
         <div className="fixed top-4 right-4 z-50 bg-[#1A1A1A] text-white text-xs font-bold py-2.5 px-4 rounded-2xl shadow-xl flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200 border border-white/10">
@@ -259,6 +346,19 @@ export const App: React.FC = () => {
 
           {/* Desktop Navigation Tabs */}
           <nav className="hidden md:flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-2xl border border-[#E5E0D8]">
+            {/* Onboarding Screen Tab */}
+            <button
+              onClick={() => setActiveTab('onboarding')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold btn-tactile-sm ${
+                activeTab === 'onboarding'
+                  ? 'bg-white text-[#3D5438] shadow-2xs'
+                  : 'text-[#737373] hover:text-[#171717]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Onboarding</span>
+            </button>
+
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold btn-tactile-sm ${
@@ -308,8 +408,18 @@ export const App: React.FC = () => {
             </button>
           </nav>
 
-          {/* Right Header Action: Only Sign In / User Account at the very end */}
-          <div className="flex items-center">
+          {/* Right Header Action */}
+          <div className="flex items-center gap-2">
+            {/* Quick Replay Loading Button */}
+            <button
+              onClick={() => setIsPreloading(true)}
+              className="hidden lg:flex items-center gap-1 text-[11px] font-bold text-[#737373] hover:text-[#3D5438] px-2.5 py-1.5 rounded-full hover:bg-[#FAF8F5] transition-colors"
+              title="Replay startup loading animation"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Replay Intro</span>
+            </button>
+
             {isAuthenticated ? (
               <button 
                 onClick={() => setActiveTab('settings')}
@@ -336,6 +446,20 @@ export const App: React.FC = () => {
 
       {/* Main Responsive Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 md:pb-12">
+        {/* TAB 1: Onboarding View (Faithfully matching Reference Image with Lottie Animation) */}
+        {activeTab === 'onboarding' && (
+          <div className="py-2 flex items-center justify-center min-h-[calc(100vh-140px)]">
+            <Screen1Onboarding
+              onAddManually={() => {
+                localStorage.setItem('reconcile_onboarding_completed', 'true');
+                setActiveTab('subscriptions');
+                setIsAddEditOpen(true);
+              }}
+            />
+          </div>
+        )}
+
+        {/* TAB 2: Dashboard View */}
         {activeTab === 'dashboard' && (
           <DashboardTab
             subscriptions={subscriptions}
@@ -346,10 +470,11 @@ export const App: React.FC = () => {
               setIsAddEditOpen(true);
             }}
             onOpenNotifications={() => setIsNotificationOpen(true)}
-            onOpenOnboarding={() => setIsOnboardingOpen(true)}
+            onOpenOnboarding={() => setActiveTab('onboarding')}
           />
         )}
 
+        {/* TAB 3: Subscriptions Ledger */}
         {activeTab === 'subscriptions' && (
           <SubscriptionsTab
             subscriptions={subscriptions}
@@ -363,6 +488,7 @@ export const App: React.FC = () => {
           />
         )}
 
+        {/* TAB 4: Calendar Schedule */}
         {activeTab === 'calendar' && (
           <CalendarTab
             subscriptions={subscriptions}
@@ -372,6 +498,7 @@ export const App: React.FC = () => {
           />
         )}
 
+        {/* TAB 5: Settings & Preferences */}
         {activeTab === 'settings' && (
           <SettingsTab
             currentUser={currentUser}
@@ -380,52 +507,62 @@ export const App: React.FC = () => {
             onOpenAuth={() => setShowAuthModal(true)}
             onLogout={handleLogout}
             onOpenNotifications={() => setIsNotificationOpen(true)}
-            onOpenOnboarding={() => setIsOnboardingOpen(true)}
+            onOpenOnboarding={() => setActiveTab('onboarding')}
             showToast={showToast}
           />
         )}
       </main>
 
       {/* Mobile Fixed Bottom Navigation Bar (md:hidden) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E0D8] px-3 py-1 flex items-center justify-around safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E0D8] px-2 py-1 flex items-center justify-around safe-area-bottom">
+        <button
+          onClick={() => setActiveTab('onboarding')}
+          className={`min-h-[48px] min-w-[50px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all active:scale-95 ${
+            activeTab === 'onboarding' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
+          }`}
+        >
+          <Sparkles className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Onboard</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+          className={`min-h-[48px] min-w-[50px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all active:scale-95 ${
             activeTab === 'dashboard' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Dashboard</span>
+          <span className="text-[9px] font-bold">Dashboard</span>
         </button>
 
         <button
           onClick={() => setActiveTab('subscriptions')}
-          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+          className={`min-h-[48px] min-w-[50px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all active:scale-95 ${
             activeTab === 'subscriptions' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <CreditCard className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Subscriptions</span>
+          <span className="text-[9px] font-bold">Subs ({subscriptions.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('calendar')}
-          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+          className={`min-h-[48px] min-w-[50px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all active:scale-95 ${
             activeTab === 'calendar' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <CalendarIcon className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Calendar</span>
+          <span className="text-[9px] font-bold">Calendar</span>
         </button>
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`min-h-[48px] min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all active:scale-95 ${
+          className={`min-h-[48px] min-w-[50px] flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all active:scale-95 ${
             activeTab === 'settings' ? 'text-[#3D5438] font-bold' : 'text-[#737373]'
           }`}
         >
           <SettingsIcon className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Settings</span>
+          <span className="text-[9px] font-bold">Settings</span>
         </button>
       </nav>
 
@@ -491,8 +628,7 @@ export const App: React.FC = () => {
         }}
       />
 
-
-      {/* 6. Auth Modal (Sign In / Register) */}
+      {/* 5. Auth Modal (Sign In / Register) */}
       {showAuthModal && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
@@ -520,10 +656,10 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* 7. Animated In-App Onboarding Experience */}
+      {/* 6. Guided Tour Modal (Accessible if requested) */}
       <OnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
+        isOpen={isOnboardingModalOpen}
+        onClose={() => setIsOnboardingModalOpen(false)}
       />
     </div>
   );
