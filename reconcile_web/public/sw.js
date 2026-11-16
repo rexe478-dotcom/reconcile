@@ -1,5 +1,5 @@
 // Reconcile Progressive Web App Service Worker
-const CACHE_NAME = 'reconcile-cache-v1';
+const CACHE_NAME = 'reconcile-cache-v2';
 
 const STATIC_PRECACHE_URLS = [
   './',
@@ -11,7 +11,12 @@ const STATIC_PRECACHE_URLS = [
   './icon-512.png',
   './icon-512-maskable.png',
   './apple-touch-icon.png',
-  './offline.html'
+  './offline.html',
+  './assets/animations/onboarding_calendar.json',
+  './assets/animations/app_preloader.json',
+  './assets/animations/success_celebration.json',
+  './assets/animations/empty_subscriptions.json',
+  './assets/animations/bell_pulse.json'
 ];
 
 // Installation: Cache core application shell
@@ -30,6 +35,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
+            console.log('Purging legacy PWA cache:', name);
             return caches.delete(name);
           }
         })
@@ -51,12 +57,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 1. Navigation requests (HTML documents)
+  // 1. Navigation requests (HTML documents) - Always network first so updates load immediately
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Clone and update cache with latest HTML
           if (response && response.status === 200) {
             const copy = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
@@ -64,7 +69,6 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(async () => {
-          // If network fails, serve cached page or offline fallback
           const cachedResponse = await caches.match(request);
           if (cachedResponse) {
             return cachedResponse;
@@ -88,7 +92,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Static assets: Stale-While-Revalidate
+  // 3. Static assets: Network-first for HTML/JS/CSS during deploy updates, fallback to cache
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       const fetchPromise = fetch(request).then((networkResponse) => {

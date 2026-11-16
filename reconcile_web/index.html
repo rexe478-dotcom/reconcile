@@ -29,16 +29,26 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Register Service Worker for PWA
+      // Register Service Worker for PWA with automatic cache-invalidation
       if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
             .then((registration) => {
               console.log('Reconcile PWA Service Worker registered at scope:', registration.scope);
+              registration.update();
             })
             .catch((error) => {
               console.warn('Reconcile PWA Service Worker registration skipped or failed:', error);
             });
+        });
+
+        // Auto reload once when new service worker activates to show latest build immediately
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
         });
       }
     </script>
